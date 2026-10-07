@@ -63,12 +63,119 @@
   width: min(55cqh, 34cqw);
 }
 
-.sprite img,
+.sprite__body {
+  width: 100%;
+  height: 100%;
+}
+
+.sprite__body img,
 .sprite__placeholder {
   width: 100%;
   height: 100%;
   image-rendering: pixelated;
   object-fit: contain;
+}
+
+.sprite .sprite__ball {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 35%;
+  height: 35%;
+  translate: -50% -50%;
+  image-rendering: pixelated;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sprite[data-fx='recall'] .sprite__body {
+  animation: recall 0.8s linear forwards;
+}
+
+.sprite[data-fx='recall'] .sprite__ball {
+  animation: ball-in 0.8s linear forwards;
+}
+
+.sprite[data-fx='sendout'] .sprite__body {
+  animation: grow 1s linear forwards;
+}
+
+.sprite[data-fx='sendout'] .sprite__ball {
+  animation: ball-out 1s linear forwards;
+}
+
+@keyframes recall {
+  0%,
+  30% {
+    filter: brightness(1);
+  }
+  15%,
+  45% {
+    filter: brightness(8);
+  }
+  60% {
+    filter: brightness(8);
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    filter: brightness(8);
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes ball-in {
+  0%,
+  60% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  70%,
+  85% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes grow {
+  0%,
+  45% {
+    filter: brightness(8);
+    transform: scale(0);
+  }
+  70% {
+    filter: brightness(8);
+    transform: scale(0.7);
+  }
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+}
+
+@keyframes ball-out {
+  0% {
+    opacity: 1;
+    transform: translateY(-60%) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(0) scale(1.3);
+  }
+  50%,
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(1.8);
+  }
 }
 
 .sprite__placeholder {
@@ -277,6 +384,23 @@
 .summary__menu .menu__option:focus-visible {
   outline: 0.25em solid var(--focus);
   outline-offset: 0.125em;
+}
+
+.party {
+  position: relative;
+}
+
+.party__options {
+  position: absolute;
+  right: 0.5em;
+  bottom: 5.5em;
+  display: flex;
+  flex-direction: column;
+  min-width: 13em;
+  padding: 0.5em;
+  background: var(--panel);
+  border: 0.25em solid var(--border);
+  color: var(--ink);
 }
 
 .party__info {
@@ -575,8 +699,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .text-box__more {
-    animation: none;
+  .text-box__more,
+  .sprite__body,
+  .sprite__ball {
+    animation: none !important;
+  }
+
+  .sprite .sprite__ball {
+    display: none;
   }
 
   .hp__fill {
