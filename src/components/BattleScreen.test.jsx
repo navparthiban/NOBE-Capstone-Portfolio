@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { FrameContext } from '../hooks/useFrame.js'
 import BattleScreen from './BattleScreen.jsx'
 
 beforeEach(() => {
@@ -329,23 +330,20 @@ describe('BattleScreen party', () => {
     expect(screen.getByRole('button', { name: 'PARTY' })).toHaveFocus()
   })
 
-  it('falls back to one column on a narrow screen', () => {
-    window.matchMedia = (query) => ({
-      matches: query.includes('max-width'),
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    })
-    try {
-      openParty()
-      press('ArrowDown')
-      expect(screen.getByRole('button', { name: /^ELECTRODE/ })).toHaveFocus()
-      press('ArrowRight')
-      expect(screen.getByRole('button', { name: /^ELECTRODE/ })).toHaveFocus()
-      press('ArrowDown')
-      expect(screen.getByRole('button', { name: /^ALAKAZAM/ })).toHaveFocus()
-    } finally {
-      delete window.matchMedia
-    }
+  it('falls back to one column when the frame is portrait', () => {
+    render(
+      <FrameContext.Provider value={{ orientation: 'portrait' }}>
+        <BattleScreen />
+      </FrameContext.Provider>,
+    )
+    skipIntro()
+    clickOption('PARTY')
+    press('ArrowDown')
+    expect(screen.getByRole('button', { name: /^ELECTRODE/ })).toHaveFocus()
+    press('ArrowRight')
+    expect(screen.getByRole('button', { name: /^ELECTRODE/ })).toHaveFocus()
+    press('ArrowDown')
+    expect(screen.getByRole('button', { name: /^ALAKAZAM/ })).toHaveFocus()
   })
 
   it('shows the lead with lowered HP after a battle turn', () => {
