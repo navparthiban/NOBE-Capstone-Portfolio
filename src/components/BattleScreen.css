@@ -136,8 +136,54 @@
 }
 
 .text-box {
-  padding: 1rem;
+  display: flex;
   border-right: 4px solid var(--border);
+}
+
+.text-box__body {
+  flex: 1;
+  margin: 0;
+  padding: 1rem;
+}
+
+.text-box__button {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.text-box__button:focus-visible {
+  outline: 4px solid var(--focus);
+  outline-offset: -4px;
+}
+
+.text-box__more {
+  float: right;
+  animation: blink 0.8s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-box__more {
+    animation: none;
+  }
+}
+
+.panel--full {
+  grid-template-columns: 1fr;
+}
+
+.panel--full .text-box {
+  border-right: 0;
 }
 
 .menu {
