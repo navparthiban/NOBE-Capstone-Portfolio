@@ -24,8 +24,8 @@ src/
     TextBox.jsx        typewriter message box, advances the message queue
     PokemonStatus.jsx  name and level above an HP bar
     HpBar.jsx          the HP bar, used by the battle and the party screens
-    Sprite.jsx         sprite image or placeholder box
-    PartyScreen.jsx    the party grid, with the "Choose a Pokémon." text box and CANCEL
+    Sprite.jsx         sprite image or placeholder box, with the recall and send-out animation
+    PartyScreen.jsx    the party grid, the small SWITCH / SUMMARY / CANCEL menu, and the text box with CANCEL
     PartySummary.jsx   one Pokémon's summary
     BagScreen.jsx      the bag: item links, description text box, and CANCEL
     BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx, BagScreen.test.jsx
@@ -44,12 +44,12 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
 
 ```js
 {
-  menu: 'main' | 'fight' | 'party' | 'summary' | 'bag' | 'victory',  // which screen and options are showing
+  menu: 'main' | 'fight' | 'party' | 'partyMenu' | 'summary' | 'bag' | 'victory',  // which screen and options are showing
   cursor: 0,                           // highlighted option
   queue: [{ text, changes }, ...],     // messages waiting to be read; queue[0] is on screen
   party: [ ...Navin's six Pokémon, each with its current hp ],
   lead: 0,                             // which party Pokémon is fighting
-  selected: 0,                         // which party Pokémon's summary is open
+  selected: 0,                         // which party Pokémon's small menu or summary is open
   team: [ ...three Recruiter Pokémon, each with its own hp and attack ],
   active: 0,                           // which Recruiter Pokémon is on the field
 }
@@ -58,8 +58,8 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
 - `createBattle()` builds the starting state: everyone at full HP, intro messages queued. `getLead(state)` returns the party Pokémon that is fighting.
 - `battleReducer(state, action)` is the one entry point for changes. It never changes the old state; it returns a new one. Actions:
   - `cursor` (arrow key): moves the cursor with `moveCursor`, which stops at the edges. The main and move menus are a 2-column grid, the party screen is a 2-column grid (or 1 column, see below), and the summary has one column.
-  - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, PARTY opens the party grid, a party Pokémon opens its summary, BACK or CANCEL goes back, REMATCH calls `createBattle()`. BAG opens the bag, and selecting a bag item only moves the cursor to it (the link itself is handled by the browser). RUN queues a placeholder message.
-  - `back` (Escape): goes back one screen. Move menu to main, party grid to main (cursor on PARTY), bag to main (cursor on BAG), and summary to the party grid (cursor on that Pokémon). On the main menu it does nothing.
+  - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, PARTY opens the party grid, a party Pokémon opens its small menu (SWITCH, SUMMARY, CANCEL), SWITCH calls `switchLead`, SUMMARY opens the summary, BACK or CANCEL goes back, REMATCH calls `createBattle()`. BAG opens the bag, and selecting a bag item only moves the cursor to it (the link itself is handled by the browser). RUN queues a placeholder message.
+  - `back` (Escape): goes back one screen. Move menu to main, small menu to the party grid (cursor on that Pokémon), party grid to main (cursor on PARTY), bag to main (cursor on BAG), and summary to the party grid (cursor on that Pokémon). On the main menu it does nothing.
   - `advance`: removes the message on screen from the queue, then applies the changes of the next message.
 - While `queue` has messages, the reducer ignores everything except `advance`, so the visitor reads each message before acting.
 - `takeTurn(state, moveIndex)` plays one turn: the move hits (opponent HP stops at 0), then either the opponent faints (next one is sent out, or victory if it was the last) or it attacks back (the lead's HP stops at 1). It queues a message for each step. After victory it does nothing.
@@ -70,7 +70,7 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
 key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state -> re-render
 ```
 - `BattleScreen` calls `useReducer(battleReducer, null, createBattle)` and passes pieces of the state down. It turns key presses into actions: arrows to `cursor`, Escape to `back`.
-- It shows one of three things, based on `state.menu`: `PartyScreen` for `party`, `PartySummary` for `summary`, and otherwise the battle field with the text box and menu.
+- It shows one of four things, based on `state.menu`: `PartyScreen` for `party` and `partyMenu`, `PartySummary` for `summary`, `BagScreen` for `bag`, and otherwise the battle field with the text box and menu.
 - While messages are queued, `TextBox` shows `queue[0]` as a button and the menu is hidden. A click or Enter finishes the typing, and the next one dispatches `advance`. When the queue is empty, `TextBox` shows a prompt from `getPrompt(state)` and `BattleMenu` appears.
 - `BattleMenu`, `PartyScreen`, and `PartySummary` all use `useMenuFocus`, which moves browser focus to the button at `cursor`. Only that button is in the Tab order.
 - `useTypewriter` only controls how fast the text appears. It skips the animation if the visitor prefers reduced motion. Screen readers read the full message once from a hidden live region instead of letter by letter.
@@ -103,8 +103,21 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - In `BattleScreen.css` every size is in `em`, so the whole layout scales with the frame's font size. Every screen fills the frame: the battle field takes the leftover height above the text box, the party grid shares the height evenly, and the summary pins BACK to the bottom. The portrait layout is chosen by the frame's `data-orientation`, not by a media query.
 - The battle sprites are sized with container query units, as the smaller of a height-based and a width-based limit, so they fit whatever shape the field is.
 
-## Adding SWITCH later
-The summary screen builds its buttons from `getMenuOptions('summary')`, which is `['BACK']` today. To add switching, put `'SWITCH'` in that list, handle it in `selectOption` in `battle.js` by changing `lead`, and nothing in the components has to change.
+## How switching works
+- Selecting a party Pokémon opens `partyMenu`, whose options are `SWITCH`, `SUMMARY`, `CANCEL` in one column. `PartyScreen` draws it as a small box over the grid, and the other cards ignore clicks while it is open.
+- `switchLead(state, index)` in `battle.js` is a plain function. It does nothing after victory (`isOver`) or outside the small menu. For the Pokémon already in battle it queues one message and returns to the party grid. Otherwise it queues three messages and returns to the main menu:
+  1. "Come back, PORYGON!", with `fx.player = 'recall'`
+  2. "Go, ALAKAZAM!", with `lead` changed and `fx.player = 'sendout'`
+  3. The Recruiter's attack on the new Pokémon, which lowers only that Pokémon's HP (never below 1)
+- Because `changes` apply when their message appears, the old Pokémon stays on screen through message 1, and the new one, with its name, level, and HP, only appears with message 2. HP lives in `party`, so each Pokémon keeps its own.
+- The party screen shows queued messages in its text box (for "already in battle") and advances them like the battle screen. `useMenuFocus` gets a version value so focus returns to the grid when the message is gone.
+- `createBattle()` (REMATCH) restores all HP, sets `lead` back to 0, and clears `fx`.
+
+## How the animations work
+- `state.fx` is `{ player, opponent }`, each `null`, `'recall'`, or `'sendout'`. Like HP, a value is set by the message it belongs to. `takeTurn` sets `fx.opponent = 'sendout'` on "Recruiter sent out HIREMON!", so the Recruiter's replacements reuse the same animation.
+- `BattleScreen` passes each side's `fx` to `Sprite`, with a `key` of the Pokémon's name plus its `fx`, so a new animation always starts fresh. `Sprite` sets `data-fx`, and wraps the image in `.sprite__body` with a `.sprite__ball` (the Pokéball SVG) beside it.
+- All the motion is CSS keyframes in `BattleScreen.css` (`recall`, `ball-in`, `grow`, `ball-out`). Recall ends with the sprite scaled to 0 and stays that way until the next message replaces it.
+- With reduced motion on, a media query turns the animations off and hides the ball, so the sprite just swaps. Logic tests check `fx` and the order of changes, because jsdom does not run CSS animations. The animation timing itself was checked in a real browser.
 
 ## Editing content
 - Change move names, damage, or messages in `src/data/moves.js`.
@@ -119,4 +132,5 @@ The summary screen builds its buttons from `getMenuOptions('summary')`, which is
 - `BattleScreen.test.jsx` plays the real screen with fake timers: the intro, typing and advancing, menus with arrows and Escape, a full battle to victory, Rematch, and the party list and summaries.
 - `bag.test.js` checks the bag data: four unique items with the exact links.
 - `BagScreen.test.jsx` stubs `fetch` and checks each link, the new-tab attributes, the descriptions, copying the email address (including when the clipboard is refused or missing), and the resume cases: found, 404, a non-PDF answer, and a failed request.
+- The switching tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover the messages and their order, the Recruiter's attack after a switch, each Pokémon keeping its own HP, switching to the Pokémon already in battle, switching after victory, rematch, and the Recruiter's replacement not appearing before its message.
 - `PartySummary.test.jsx` checks that a Pokémon with missing optional fields still renders.
