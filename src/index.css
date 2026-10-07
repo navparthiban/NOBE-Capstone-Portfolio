@@ -9,7 +9,6 @@ body {
   font-family: 'Press Start 2P', 'Courier New', monospace;
   line-height: 1.5;
   -webkit-font-smoothing: none;
-  font-smooth: never;
 }
 
 .stage {
