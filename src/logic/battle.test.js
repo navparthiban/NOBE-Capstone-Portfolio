@@ -63,8 +63,8 @@ describe('getMenuOptions', () => {
     expect(getMenuOptions('fight')).toEqual(['React', 'TypeScript', 'Java', 'Git', 'BACK'])
   })
 
-  it('returns the six party names and BACK for the party list', () => {
-    expect(getMenuOptions('party')).toEqual([...party.map((pokemon) => pokemon.name), 'BACK'])
+  it('returns the six party names and CANCEL for the party list', () => {
+    expect(getMenuOptions('party')).toEqual([...party.map((pokemon) => pokemon.name), 'CANCEL'])
   })
 
   it('returns only BACK for a summary', () => {
@@ -117,6 +117,65 @@ describe('moveCursor', () => {
     expect(moveCursor(1, 'ArrowUp', 7, 1)).toBe(0)
     expect(moveCursor(1, 'ArrowRight', 7, 1)).toBe(1)
     expect(moveCursor(1, 'ArrowLeft', 7, 1)).toBe(1)
+  })
+})
+
+describe('moveCursor with the last option right-aligned', () => {
+  const move = (index, key, columns = 2) => moveCursor(index, key, 7, columns, true)
+
+  it('moves between neighboring cards in all four directions', () => {
+    expect(move(0, 'ArrowRight')).toBe(1)
+    expect(move(0, 'ArrowDown')).toBe(2)
+    expect(move(3, 'ArrowLeft')).toBe(2)
+    expect(move(3, 'ArrowUp')).toBe(1)
+    expect(move(3, 'ArrowDown')).toBe(5)
+  })
+
+  it('reaches the last option from the bottom row, and comes back up to the right-hand card', () => {
+    expect(move(5, 'ArrowDown')).toBe(6)
+    expect(move(4, 'ArrowDown')).toBe(6)
+    expect(move(6, 'ArrowUp')).toBe(5)
+  })
+
+  it('stays put at the edges of the grid', () => {
+    expect(move(0, 'ArrowUp')).toBe(0)
+    expect(move(1, 'ArrowUp')).toBe(1)
+    expect(move(0, 'ArrowLeft')).toBe(0)
+    expect(move(2, 'ArrowLeft')).toBe(2)
+    expect(move(1, 'ArrowRight')).toBe(1)
+    expect(move(5, 'ArrowRight')).toBe(5)
+  })
+
+  it('stays put on the last option when moving left, right, or down', () => {
+    expect(move(6, 'ArrowLeft')).toBe(6)
+    expect(move(6, 'ArrowRight')).toBe(6)
+    expect(move(6, 'ArrowDown')).toBe(6)
+  })
+
+  it('keeps the cursor inside the list however many keys are pressed', () => {
+    const keys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'a']
+    for (let start = 0; start < 7; start++) {
+      let index = start
+      for (let step = 0; step < 40; step++) {
+        index = move(index, keys[(step * 7 + start) % keys.length])
+        expect(index).toBeGreaterThanOrEqual(0)
+        expect(index).toBeLessThanOrEqual(6)
+      }
+    }
+  })
+
+  it('moves one card at a time in a single column', () => {
+    expect(move(0, 'ArrowDown', 1)).toBe(1)
+    expect(move(5, 'ArrowDown', 1)).toBe(6)
+    expect(move(6, 'ArrowUp', 1)).toBe(5)
+    expect(move(2, 'ArrowRight', 1)).toBe(2)
+    expect(move(2, 'ArrowLeft', 1)).toBe(2)
+  })
+
+  it('leaves the main menu movement unchanged when the flag is off', () => {
+    expect(moveCursor(2, 'ArrowRight', 3, 2, false)).toBe(2)
+    expect(moveCursor(1, 'ArrowDown', 3, 2, false)).toBe(1)
+    expect(moveCursor(2, 'ArrowDown', 5, 2, false)).toBe(4)
   })
 })
 
@@ -238,7 +297,7 @@ describe('party', () => {
 
   it('selects with the cursor when no index is given', () => {
     let state = openParty(createBattle())
-    state = battleReducer(state, { type: 'cursor', key: 'ArrowDown' })
+    state = battleReducer(state, { type: 'cursor', key: 'ArrowRight' })
     state = battleReducer(state, { type: 'select' })
     expect(state.menu).toBe('summary')
     expect(state.selected).toBe(1)
@@ -262,16 +321,55 @@ describe('party', () => {
     }
   })
 
-  it('moves up and down the list without wrapping', () => {
+  it('moves through the grid and reaches CANCEL', () => {
+    const press = (state, key, columns) => battleReducer(state, { type: 'cursor', key, columns })
     let state = openParty(createBattle())
-    state = battleReducer(state, { type: 'cursor', key: 'ArrowUp' })
-    expect(state.cursor).toBe(0)
-    state = battleReducer(state, { type: 'cursor', key: 'ArrowRight' })
-    expect(state.cursor).toBe(0)
-    for (let step = 0; step < 10; step++) {
-      state = battleReducer(state, { type: 'cursor', key: 'ArrowDown' })
-    }
+    state = press(state, 'ArrowRight')
+    expect(state.cursor).toBe(1)
+    state = press(state, 'ArrowDown')
+    state = press(state, 'ArrowDown')
+    expect(state.cursor).toBe(5)
+    state = press(state, 'ArrowDown')
     expect(state.cursor).toBe(6)
+    state = press(state, 'ArrowUp')
+    expect(state.cursor).toBe(5)
+  })
+
+  it('does not break the cursor when pressing arrows at the edge of the grid', () => {
+    const press = (state, key) => battleReducer(state, { type: 'cursor', key })
+    let state = openParty(createBattle())
+    state = press(press(state, 'ArrowUp'), 'ArrowLeft')
+    expect(state.cursor).toBe(0)
+    expect(state.menu).toBe('party')
+    state = press(state, 'ArrowRight')
+    state = press(state, 'ArrowRight')
+    expect(state.cursor).toBe(1)
+    for (let step = 0; step < 6; step++) state = press(state, 'ArrowDown')
+    expect(state.cursor).toBe(6)
+    for (const key of ['ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home']) state = press(state, key)
+    expect(state.cursor).toBe(6)
+    expect(state.menu).toBe('party')
+  })
+
+  it('moves one card at a time when the screen is one column wide', () => {
+    const press = (state, key) => battleReducer(state, { type: 'cursor', key, columns: 1 })
+    let state = openParty(createBattle())
+    state = press(state, 'ArrowDown')
+    expect(state.cursor).toBe(1)
+    state = press(state, 'ArrowRight')
+    expect(state.cursor).toBe(1)
+    state = press(press(press(press(press(state, 'ArrowDown'), 'ArrowDown'), 'ArrowDown'), 'ArrowDown'), 'ArrowDown')
+    expect(state.cursor).toBe(6)
+    expect(press(state, 'ArrowDown').cursor).toBe(6)
+  })
+
+  it('selects CANCEL with the cursor to go back to the main menu', () => {
+    let state = openParty(createBattle())
+    for (let step = 0; step < 4; step++) state = battleReducer(state, { type: 'cursor', key: 'ArrowDown' })
+    expect(state.cursor).toBe(6)
+    state = battleReducer(state, { type: 'select' })
+    expect(state.menu).toBe('main')
+    expect(state.cursor).toBe(PARTY_OPTION)
   })
 
   it('does nothing for a Pokémon that does not exist', () => {

@@ -8,25 +8,39 @@ const MAIN_OPTIONS = ['FIGHT', 'BAG', 'PARTY', 'RUN']
 
 export function getMenuOptions(menu = 'main') {
   if (menu === 'fight') return [...moves.map((move) => move.name), 'BACK']
-  if (menu === 'party') return [...party.map((pokemon) => pokemon.name), 'BACK']
+  if (menu === 'party') return [...party.map((pokemon) => pokemon.name), 'CANCEL']
   if (menu === 'summary') return ['BACK']
   if (menu === 'victory') return ['REMATCH']
   return MAIN_OPTIONS
 }
 
-function getColumns(menu) {
-  return menu === 'party' || menu === 'summary' ? 1 : MENU_COLUMNS
+export const PARTY_COLUMNS = 2
+
+function getGrid(menu, columns) {
+  if (menu === 'party') return { columns: columns ?? PARTY_COLUMNS, rightAlignLast: true }
+  if (menu === 'summary') return { columns: 1, rightAlignLast: false }
+  return { columns: MENU_COLUMNS, rightAlignLast: false }
 }
 
-export function moveCursor(index, key, count = MAIN_OPTIONS.length, columns = MENU_COLUMNS) {
-  const column = index % columns
-  const nextIndex = {
-    ArrowLeft: column > 0 ? index - 1 : index,
-    ArrowRight: column < columns - 1 && index + 1 < count ? index + 1 : index,
-    ArrowUp: index - columns >= 0 ? index - columns : index,
-    ArrowDown: index + columns < count ? index + columns : index,
-  }
-  return nextIndex[key] ?? index
+export function moveCursor(
+  index,
+  key,
+  count = MAIN_OPTIONS.length,
+  columns = MENU_COLUMNS,
+  rightAlignLast = false,
+) {
+  const last = count - 1
+  const lastCell = rightAlignLast ? last + (columns - 1 - (last % columns)) : last
+  const cell = index === last ? lastCell : index
+  const column = cell % columns
+  const nextCell = {
+    ArrowLeft: column > 0 ? cell - 1 : cell,
+    ArrowRight: column < columns - 1 && cell + 1 <= lastCell ? cell + 1 : cell,
+    ArrowUp: cell - columns >= 0 ? cell - columns : cell,
+    ArrowDown: cell + columns <= lastCell ? cell + columns : cell,
+  }[key]
+  if (nextCell === undefined) return index
+  return Math.min(nextCell, last)
 }
 
 export function getSelectionMessage(option) {
@@ -115,7 +129,7 @@ function selectOption(state, index) {
   if (!option) return state
 
   if (state.menu === 'victory') return createBattle()
-  if (option === 'BACK') return goBack(state)
+  if (option === 'BACK' || option === 'CANCEL') return goBack(state)
   if (state.menu === 'fight') return takeTurn(state, index)
   if (state.menu === 'party') return { ...state, menu: 'summary', selected: index, cursor: 0 }
   if (option === 'FIGHT') return { ...state, menu: 'fight', cursor: 0 }
@@ -133,7 +147,8 @@ export function battleReducer(state, action) {
   switch (action.type) {
     case 'cursor': {
       const count = getMenuOptions(state.menu).length
-      return { ...state, cursor: moveCursor(state.cursor, action.key, count, getColumns(state.menu)) }
+      const { columns, rightAlignLast } = getGrid(state.menu, action.columns)
+      return { ...state, cursor: moveCursor(state.cursor, action.key, count, columns, rightAlignLast) }
     }
     case 'back':
       return goBack(state)
