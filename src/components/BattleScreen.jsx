@@ -32,12 +32,16 @@ export default function BattleScreen() {
   return (
     <main className="battle">
       <h1 className="visually-hidden">Navin's Portfolio</h1>
-      {state.menu === 'party' && (
+      {(state.menu === 'party' || state.menu === 'partyMenu') && (
         <PartyScreen
           party={state.party}
+          menu={state.menu}
           cursor={state.cursor}
+          selected={state.selected}
+          message={hasMessages ? state.queue[0].text : null}
           onKeyDown={handleKeyDown}
           onSelect={handleSelect}
+          onAdvance={() => dispatch({ type: 'advance' })}
         />
       )}
       {state.menu === 'bag' && (
@@ -51,13 +55,25 @@ export default function BattleScreen() {
           onSelect={handleSelect}
         />
       )}
-      {!['party', 'summary', 'bag'].includes(state.menu) && (
+      {!['party', 'partyMenu', 'summary', 'bag'].includes(state.menu) && (
         <>
           <section className="field">
             <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />
-            <Sprite name={opponent.name} src={opponent.sprite} side="opponent" />
-            <Sprite name={lead.name} src={lead.sprite} side="player" />
-            <PokemonStatus pokemon={lead} side="player" />
+            <Sprite
+              key={`${opponent.name}-${state.fx.opponent}`}
+              name={opponent.name}
+              src={opponent.sprite}
+              side="opponent"
+              fx={state.fx.opponent}
+            />
+            <Sprite
+              key={`${lead.name}-${state.fx.player}`}
+              name={lead.name}
+              src={lead.sprite}
+              side="player"
+              fx={state.fx.player}
+            />
+            <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />
           </section>
           <section className={hasMessages ? 'panel panel--full' : 'panel'}>
             <TextBox
