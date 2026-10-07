@@ -6,10 +6,11 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 ## Features
 - FIGHT: skills as moves (React, TypeScript, Java, Git). Built in step 4
 - PARTY: six Pokémon, each a project or experience, with a short summary
+- Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements
 - BAG: resume and links
-- RUN: plain, non-game version of the site
+- Intro where the Professor asks the visitor's name, then a transition into the battle
 - Badge screen on winning, with contact info
-- Intro screen (stretch goal)
+- RUN: a plain, separate portfolio page, designed after the game is done
 
 ## Requirements
 - Public GitHub repo
@@ -36,17 +37,19 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - Oct 17: presentation
 
 ## Build order
-1. Local project setup
-2. GitHub repo and CI/CD pipeline
-3. Battle screen with the four buttons and text box
-4. Battle logic and tests
-5. PARTY summaries, BAG links, and the RUN page
-6. Intro and badge screen if time allows
+Done: local project setup, GitHub repo and CI/CD pipeline, battle screen, battle logic and tests.
+
+Next:
+1. PARTY summaries
+2. BAG
+3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements
+4. Intro with the Professor asking the visitor's name, the battle transition, and the badge screen
+5. RUN as a plain, separate portfolio page, designed after the game is done
 
 ## Known gaps
 - No real content yet (skills, projects, resume, links)
 - Pixel art and sprites not chosen
-- Intro and badge screens are stretch goals
+- Intro and badge screens are planned for step 4 and not built yet
 - Screen-reader behavior of the pixel-style UI is untested
 - Winning only shows a victory message and REMATCH; the badge screen is not built yet
 - Move damage and Pokémon names are placeholders
