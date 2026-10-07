@@ -4,7 +4,7 @@ export const bagItems = [
   {
     name: 'RESUME',
     description: "Navin's resume (PDF).",
-    missingMessage: "Navin's resume isn't available yet. Check back soon!",
+    missingMessage: "Resume isn't available yet.",
     url: RESUME_URL,
     external: true,
   },

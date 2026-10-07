@@ -310,7 +310,7 @@
 .screen__footer {
   display: grid;
   grid-template-columns: 1fr auto;
-  height: 4.5em;
+  height: 5.5em;
   background: var(--panel);
   border: 0.25em solid var(--border);
 }

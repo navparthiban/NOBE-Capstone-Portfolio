@@ -76,7 +76,7 @@ describe('BagScreen links', () => {
 })
 
 describe('BagScreen when the resume is missing', () => {
-  const message = "Navin's resume isn't available yet. Check back soon!"
+  const message = "Resume isn't available yet."
 
   it('checks the resume file with a HEAD request', async () => {
     const fetchMock = stubFetch(pdf)
@@ -98,6 +98,12 @@ describe('BagScreen when the resume is missing', () => {
     await renderBag()
     expect(screen.queryByRole('link', { name: /RESUME/ })).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(message)
+  })
+
+  it('keeps keyboard focus on RESUME when it turns into a message', async () => {
+    stubFetch({ ok: false, headers: new Headers() })
+    await renderBag()
+    expect(screen.getByRole('button', { name: /RESUME/ })).toHaveFocus()
   })
 
   it('keeps the other items as links', async () => {

@@ -4,8 +4,8 @@ import useMenuFocus from '../hooks/useMenuFocus.js'
 import TextBox from './TextBox.jsx'
 
 export default function BagScreen({ cursor, onKeyDown, onSelect }) {
-  const buttonRef = useMenuFocus(cursor, 'bag')
   const resumeAvailable = useFileAvailable(bagItems[0].url, 'pdf')
+  const buttonRef = useMenuFocus(cursor, 'bag', resumeAvailable)
   const cancelIndex = bagItems.length
   const isMissing = (item) => item.missingMessage !== undefined && !resumeAvailable
   const current = bagItems[cursor]
