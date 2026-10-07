@@ -17,6 +17,8 @@ export default function BattleScreen() {
   const lead = getLead(state)
   const message = hasMessages ? state.queue[0].text : getPrompt(state)
   const { orientation } = useFrame()
+  const opponentOut = state.fx.opponent !== 'hidden'
+  const playerOut = state.fx.player !== 'hidden'
 
   function handleKeyDown(event) {
     if (event.key === 'Escape') {
@@ -58,22 +60,26 @@ export default function BattleScreen() {
       {!['party', 'partyMenu', 'summary', 'bag'].includes(state.menu) && (
         <>
           <section className="field">
-            <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />
-            <Sprite
-              key={`${opponent.name}-${state.fx.opponent}`}
-              name={opponent.name}
-              src={opponent.sprite}
-              side="opponent"
-              fx={state.fx.opponent}
-            />
-            <Sprite
-              key={`${lead.name}-${state.fx.player}`}
-              name={lead.name}
-              src={lead.sprite}
-              side="player"
-              fx={state.fx.player}
-            />
-            <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />
+            {opponentOut && <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />}
+            {opponentOut && (
+              <Sprite
+                key={`${opponent.name}-${state.fx.opponent}`}
+                name={opponent.name}
+                src={opponent.sprite}
+                side="opponent"
+                fx={state.fx.opponent}
+              />
+            )}
+            {playerOut && (
+              <Sprite
+                key={`${lead.name}-${state.fx.player}`}
+                name={lead.name}
+                src={lead.sprite}
+                side="player"
+                fx={state.fx.player}
+              />
+            )}
+            {playerOut && <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />}
           </section>
           <section className={hasMessages ? 'panel panel--full' : 'panel'}>
             <TextBox

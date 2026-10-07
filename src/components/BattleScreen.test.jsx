@@ -25,6 +25,7 @@ function nextMessage() {
 function skipIntro() {
   nextMessage()
   nextMessage()
+  nextMessage()
 }
 
 function press(key) {
@@ -57,9 +58,33 @@ describe('BattleScreen intro', () => {
     nextMessage()
     expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
     nextMessage()
+    expect(status()).toHaveTextContent('Go, PORYGON!')
+    expect(hasMenu()).toBe(false)
+    nextMessage()
     expect(hasMenu()).toBe(true)
     expect(status()).toHaveTextContent('What will PORYGON do?')
     expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
+  })
+
+  it('keeps each side off the field until its own send-out message', () => {
+    const { container } = render(<BattleScreen />)
+    const sprite = (name) => screen.queryByRole('img', { name: `${name} sprite` })
+    const fx = (name) => sprite(name).closest('.sprite').dataset.fx
+    expect(sprite('SCREENMON')).not.toBeInTheDocument()
+    expect(sprite('PORYGON')).not.toBeInTheDocument()
+    expect(container.querySelector('.status')).not.toBeInTheDocument()
+
+    nextMessage()
+    expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
+    expect(fx('SCREENMON')).toBe('sendout')
+    expect(container.querySelector('.status--opponent')).toHaveTextContent('SCREENMON')
+    expect(sprite('PORYGON')).not.toBeInTheDocument()
+    expect(container.querySelector('.status--player')).not.toBeInTheDocument()
+
+    nextMessage()
+    expect(status()).toHaveTextContent('Go, PORYGON!')
+    expect(fx('PORYGON')).toBe('sendout')
+    expect(container.querySelector('.status--player')).toHaveTextContent('PORYGON')
   })
 
   it('types the message out, and a click finishes it before advancing', () => {
@@ -229,6 +254,8 @@ describe('BattleScreen battle', () => {
     expect(screen.getByRole('button', { name: 'REMATCH' })).toHaveFocus()
     clickOption('REMATCH')
     expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    skipIntro()
     expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute(
       'aria-valuenow',
       '40',
