@@ -25,7 +25,7 @@ export default function BattleScreen() {
     <main className="battle">
       <h1 className="visually-hidden">Navin's Portfolio</h1>
       <section className="field">
-        <PokemonStatus pokemon={opponent} side="opponent" />
+        <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />
         <Sprite name={opponent.name} src={opponent.sprite} side="opponent" />
         <Sprite name={state.player.name} src={state.player.sprite} side="player" />
         <PokemonStatus pokemon={state.player} side="player" />
