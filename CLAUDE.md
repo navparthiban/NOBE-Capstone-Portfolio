@@ -23,6 +23,7 @@ Navin is a CS + Chemistry freshman at UIUC and a beginner. This is the NOBE Tech
 - Modular, simple code with minimal comments
 - Battle logic in plain functions, separate from React components
 - One-line commit messages, never a co-authored line
+- PR descriptions should never include "Generated with Claude Code"
 - After initial setup, all work goes on separate branches, never directly to main
 - Briefly explain what each file does
 
