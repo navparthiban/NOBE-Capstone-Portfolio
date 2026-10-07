@@ -332,11 +332,18 @@ describe('party', () => {
     expect(state.queue).toEqual([])
   })
 
-  it('opens the matching summary when a Pokémon is selected', () => {
+  it('opens the small menu for the selected Pokémon', () => {
     const state = select(openParty(createBattle()), 2)
-    expect(state.menu).toBe('summary')
+    expect(state.menu).toBe('partyMenu')
     expect(state.selected).toBe(2)
     expect(party[state.selected].name).toBe('ALAKAZAM')
+    expect(getMenuOptions(state.menu)).toEqual(['SWITCH', 'SUMMARY', 'CANCEL'])
+  })
+
+  it('opens the matching summary from SUMMARY', () => {
+    const state = select(select(openParty(createBattle()), 2), 1)
+    expect(state.menu).toBe('summary')
+    expect(state.selected).toBe(2)
     expect(getMenuOptions(state.menu)).toEqual(['BACK'])
   })
 
@@ -344,12 +351,12 @@ describe('party', () => {
     let state = openParty(createBattle())
     state = battleReducer(state, { type: 'cursor', key: 'ArrowRight' })
     state = battleReducer(state, { type: 'select' })
-    expect(state.menu).toBe('summary')
+    expect(state.menu).toBe('partyMenu')
     expect(state.selected).toBe(1)
   })
 
   it('goes from the summary back to the list with the cursor on that Pokémon', () => {
-    const summary = select(openParty(createBattle()), 3)
+    const summary = select(select(openParty(createBattle()), 3), 1)
     const list = battleReducer(summary, { type: 'back' })
     expect(list.menu).toBe('party')
     expect(list.cursor).toBe(3)
@@ -433,6 +440,143 @@ describe('party', () => {
     expect(summary.selected).toBe(4)
     const victory = clearQueue(playUntilVictory(createBattle(), REACT))
     expect(select(victory, 0)).toEqual(createBattle())
+  })
+})
+
+describe('switching', () => {
+  const ALAKAZAM = 2
+  const openMenu = (state, index) => select(openParty(state), index)
+  const switchTo = (state, index) => select(openMenu(state, index), 0)
+  const press = (state, key) => battleReducer(state, { type: 'cursor', key })
+
+  it('moves through the small menu and stops at the edges', () => {
+    let state = openMenu(createBattle(), ALAKAZAM)
+    expect(state.cursor).toBe(0)
+    state = press(press(state, 'ArrowUp'), 'ArrowLeft')
+    expect(state.cursor).toBe(0)
+    for (let i = 0; i < 4; i++) state = press(state, 'ArrowDown')
+    expect(state.cursor).toBe(2)
+    expect(press(state, 'ArrowRight').cursor).toBe(2)
+  })
+
+  it('goes back to the party list with CANCEL or Escape, on the same Pokémon', () => {
+    const menu = openMenu(createBattle(), ALAKAZAM)
+    for (const state of [select(menu, 2), battleReducer(menu, { type: 'back' })]) {
+      expect(state.menu).toBe('party')
+      expect(state.cursor).toBe(ALAKAZAM)
+    }
+  })
+
+  it('changes the lead and shows the recall and send-out messages in order', () => {
+    const state = switchTo(clearQueue(createBattle()), ALAKAZAM)
+    expect(state.menu).toBe('main')
+    expect(texts(state)[0]).toBe('Come back, PORYGON!')
+    expect(texts(state)[1]).toBe('Go, ALAKAZAM!')
+    expect(getLead(clearQueue(state)).name).toBe('ALAKAZAM')
+  })
+
+  it('keeps the old lead on the field until the send-out message appears', () => {
+    let state = switchTo(clearQueue(createBattle()), ALAKAZAM)
+    expect(getLead(state).name).toBe('PORYGON')
+    expect(state.fx.player).toBe('recall')
+    state = advance(state)
+    expect(texts(state)[0]).toBe('Go, ALAKAZAM!')
+    expect(getLead(state).name).toBe('ALAKAZAM')
+    expect(state.fx.player).toBe('sendout')
+  })
+
+  it('has the Recruiter attack the new Pokémon after it is out', () => {
+    let state = switchTo(clearQueue(createBattle()), ALAKAZAM)
+    expect(texts(state)).toHaveLength(3)
+    expect(texts(state)[2]).toBe('SCREENMON used Interview! ALAKAZAM took 4 damage.')
+    state = advance(advance(state))
+    expect(getLead(state).hp).toBe(51)
+    expect(state.party[0].hp).toBe(60)
+  })
+
+  it('uses up the turn without damaging the Recruiter', () => {
+    const state = clearQueue(switchTo(clearQueue(createBattle()), ALAKAZAM))
+    expect(state.team.map((pokemon) => pokemon.hp)).toEqual([40, 50, 60])
+    expect(state.menu).toBe('main')
+    expect(state.cursor).toBe(0)
+  })
+
+  it('never lets the new Pokémon drop below 1 HP', () => {
+    const base = clearQueue(createBattle())
+    const weak = { ...base, party: base.party.map((pokemon, i) => (i === ALAKAZAM ? { ...pokemon, hp: 2 } : pokemon)) }
+    const state = switchTo(weak, ALAKAZAM)
+    expect(texts(state)[2]).toBe('SCREENMON used Interview! ALAKAZAM took 1 damage.')
+    expect(clearQueue(state).party[ALAKAZAM].hp).toBe(1)
+  })
+
+  it("keeps each Pokémon's own HP when switching away and back", () => {
+    let state = clearQueue(play(createBattle(), REACT))
+    expect(state.party[0].hp).toBe(56)
+    state = clearQueue(switchTo(state, ALAKAZAM))
+    expect(state.party[0].hp).toBe(56)
+    expect(state.party[ALAKAZAM].hp).toBe(51)
+    state = clearQueue(switchTo(state, 0))
+    expect(getLead(state).name).toBe('PORYGON')
+    expect(getLead(state).hp).toBe(52)
+    expect(state.party[ALAKAZAM].hp).toBe(51)
+  })
+
+  it('fights with the same four moves whichever Pokémon is out', () => {
+    const state = clearQueue(switchTo(clearQueue(createBattle()), ALAKAZAM))
+    expect(getMenuOptions('fight')).toEqual(['React', 'TypeScript', 'Java', 'Git', 'BACK'])
+    const after = play(state, GIT)
+    expect(after.team[0].hp).toBe(30)
+    expect(texts(after)[1]).toContain('ALAKAZAM took')
+  })
+
+  it('only shows a message when switching to the Pokémon already in battle', () => {
+    const state = clearQueue(createBattle())
+    const result = switchTo(state, 0)
+    expect(texts(result)).toEqual(['PORYGON is already in battle!'])
+    expect(result.lead).toBe(0)
+    expect(result.party).toEqual(state.party)
+    expect(result.team).toEqual(state.team)
+    expect(clearQueue(result).menu).toBe('party')
+    expect(clearQueue(result).cursor).toBe(0)
+  })
+
+  it('ignores the menu while a message is showing', () => {
+    const result = switchTo(clearQueue(createBattle()), ALAKAZAM)
+    expect(select(result, 0)).toBe(result)
+  })
+
+  it('blocks switching after victory', () => {
+    const victory = clearQueue(playUntilVictory(createBattle(), REACT))
+    expect(victory.menu).toBe('victory')
+    const forced = { ...victory, menu: 'partyMenu', selected: ALAKAZAM }
+    expect(battleReducer(forced, { type: 'select', index: 0 })).toBe(forced)
+    expect(getMenuOptions('victory')).toEqual(['REMATCH'])
+  })
+
+  it('resets all HP, the lead, and the animations on rematch', () => {
+    let state = clearQueue(switchTo(clearQueue(createBattle()), ALAKAZAM))
+    state = clearQueue(playUntilVictory(state, REACT))
+    const rematch = select(state, 0)
+    expect(rematch).toEqual(createBattle())
+    expect(rematch.lead).toBe(0)
+    expect(rematch.party.every((pokemon) => pokemon.hp === pokemon.maxHp)).toBe(true)
+    expect(rematch.fx).toEqual({ player: null, opponent: null })
+  })
+
+  it("does not put the Recruiter's next Pokémon on the field until its send-out message", () => {
+    let turn = play(clearQueue(play(clearQueue(createBattle()), REACT)), REACT)
+    const seen = []
+    while (turn.queue.length > 0) {
+      seen.push({ text: turn.queue[0].text, active: turn.active, fx: turn.fx.opponent })
+      turn = advance(turn)
+    }
+    const sendOut = seen.findIndex((entry) => entry.text === 'Recruiter sent out HIREMON!')
+    expect(sendOut).toBeGreaterThan(0)
+    expect(seen[sendOut]).toMatchObject({ active: 1, fx: 'sendout' })
+    for (const entry of seen.slice(0, sendOut)) {
+      expect(entry.active).toBe(0)
+      expect(entry.fx).toBe(null)
+    }
   })
 })
 
