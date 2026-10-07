@@ -99,6 +99,50 @@ describe('BattleScreen menus', () => {
     expect(status()).toHaveTextContent('Navin wants to RUN!')
   })
 
+  describe('bag', () => {
+    beforeEach(() => {
+      vi.stubGlobal('fetch', () => new Promise(() => {}))
+    })
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    function openBag() {
+      render(<BattleScreen />)
+      skipIntro()
+      clickOption('BAG')
+    }
+
+    it('opens the bag with BAG and focuses the first item', () => {
+      openBag()
+      expect(screen.getByRole('region', { name: 'Bag' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /RESUME/ })).toHaveFocus()
+    })
+
+    it('moves through the items with arrows and stops at CANCEL', () => {
+      openBag()
+      press('ArrowDown')
+      expect(screen.getByRole('link', { name: /GITHUB/ })).toHaveFocus()
+      for (let i = 0; i < 6; i++) press('ArrowDown')
+      expect(screen.getByRole('button', { name: 'CANCEL' })).toHaveFocus()
+    })
+
+    it('returns to the main menu with Escape and focuses BAG', () => {
+      openBag()
+      press('ArrowDown')
+      press('Escape')
+      expect(screen.queryByRole('region', { name: 'Bag' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'BAG' })).toHaveFocus()
+    })
+
+    it('returns to the main menu with CANCEL', () => {
+      openBag()
+      clickOption('CANCEL')
+      expect(screen.getByRole('button', { name: 'BAG' })).toHaveFocus()
+    })
+  })
+
   it('opens the move menu with FIGHT and goes back with Escape', () => {
     render(<BattleScreen />)
     skipIntro()
