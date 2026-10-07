@@ -5,7 +5,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 
 ## Features
 - FIGHT: skills as moves (React, TypeScript, Java, Git). Built in step 4
-- PARTY: six Pokémon, each a project or experience, with a short summary
+- PARTY: six Pokémon, each a project or experience, with a grid and a summary screen. Built
 - Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements
 - BAG: resume and links
 - Intro where the Professor asks the visitor's name, then a transition into the battle
@@ -29,7 +29,23 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - When a Recruiter Pokémon faints, the next one is sent out with a message.
 - When all three faint, the battle shows a victory message and a REMATCH option that resets everything.
 - Messages show one at a time with a typewriter effect. Enter or a click finishes the line, then moves to the next.
-- Escape or BACK returns from the move menu to the main menu. BAG, PARTY, and RUN still show placeholder messages.
+- Escape or BACK returns from the move menu to the main menu. BAG and RUN still show placeholder messages.
+- Navin's lead Pokémon in the battle is the first one in the party (PORYGON). Its HP lives in the party list, so the party screen always shows its current HP.
+
+## Party
+- PARTY opens a DS-style grid of Navin's six Pokémon, two per row. Each card shows a sprite box, name, level, HP bar, and HP numbers like 60/60. A text box along the bottom says "Choose a Pokémon.", with a CANCEL button at the bottom right.
+- The selected card is highlighted with a blue border and background. On narrow phone screens the grid becomes a single column.
+- Selecting a Pokémon opens its summary: experience, type label, role, dates, and a short description. Any optional field that is missing is left out.
+- Arrow keys move through the grid in all four directions and stop at the edges without wrapping. Down from the bottom row reaches CANCEL, and Up from CANCEL returns to the card above it.
+- Enter or a click selects. Escape or CANCEL goes back one screen: summary to grid, then grid to the main menu.
+- The summary screen has an options list (only BACK for now), so SWITCH can be added when switching is built.
+- The lineup is in `src/data/party.js`, which the RUN page can reuse later:
+  - PORYGON: ClearSign, legal contract simplifier web app
+  - ELECTRODE: SCARF research on inherited arrhythmias
+  - ALAKAZAM: Mathnasium math instructor
+  - MEOWTH: DECA marketing campaign, top 10 at state
+  - CHANSEY: Edward Hospital volunteer
+  - MAGNETON: NOBE Tech Committee, Lincoln Elementary project
 
 ## Deadlines
 - Oct 15: technical checkpoint
@@ -40,14 +56,15 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 Done: local project setup, GitHub repo and CI/CD pipeline, battle screen, battle logic and tests.
 
 Next:
-1. PARTY summaries
+1. PARTY summaries (done)
 2. BAG
 3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements
 4. Intro with the Professor asking the visitor's name, the battle transition, and the badge screen
 5. RUN as a plain, separate portfolio page, designed after the game is done
 
 ## Known gaps
-- No real content yet (skills, projects, resume, links)
+- No real content yet (skills, resume, links)
+- Party descriptions, roles, type labels, levels, and HP are starter text for Navin to rewrite, and no dates are filled in yet
 - Pixel art and sprites not chosen
 - Intro and badge screens are planned for step 4 and not built yet
 - Screen-reader behavior of the pixel-style UI is untested

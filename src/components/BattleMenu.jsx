@@ -1,19 +1,15 @@
-import { useEffect, useRef } from 'react'
+import useMenuFocus from '../hooks/useMenuFocus.js'
 import { getMenuOptions } from '../logic/battle.js'
 
 export default function BattleMenu({ menu, cursor, onKeyDown, onSelect }) {
-  const buttons = useRef([])
-
-  useEffect(() => {
-    buttons.current[cursor]?.focus()
-  }, [cursor, menu])
+  const buttonRef = useMenuFocus(cursor, menu)
 
   return (
     <div className="menu" role="group" aria-label="Battle menu" onKeyDown={onKeyDown}>
       {getMenuOptions(menu).map((option, index) => (
         <button
           key={option}
-          ref={(el) => (buttons.current[index] = el)}
+          ref={buttonRef(index)}
           type="button"
           className="menu__option"
           tabIndex={index === cursor ? 0 : -1}

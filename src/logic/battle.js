@@ -1,5 +1,6 @@
 import { moves } from '../data/moves.js'
-import { player, recruiterTeam } from '../data/pokemon.js'
+import { party } from '../data/party.js'
+import { recruiterTeam } from '../data/pokemon.js'
 
 export const MENU_COLUMNS = 2
 
@@ -7,19 +8,39 @@ const MAIN_OPTIONS = ['FIGHT', 'BAG', 'PARTY', 'RUN']
 
 export function getMenuOptions(menu = 'main') {
   if (menu === 'fight') return [...moves.map((move) => move.name), 'BACK']
+  if (menu === 'party') return [...party.map((pokemon) => pokemon.name), 'CANCEL']
+  if (menu === 'summary') return ['BACK']
   if (menu === 'victory') return ['REMATCH']
   return MAIN_OPTIONS
 }
 
-export function moveCursor(index, key, count = MAIN_OPTIONS.length, columns = MENU_COLUMNS) {
-  const column = index % columns
-  const nextIndex = {
-    ArrowLeft: column > 0 ? index - 1 : index,
-    ArrowRight: column < columns - 1 && index + 1 < count ? index + 1 : index,
-    ArrowUp: index - columns >= 0 ? index - columns : index,
-    ArrowDown: index + columns < count ? index + columns : index,
-  }
-  return nextIndex[key] ?? index
+export const PARTY_COLUMNS = 2
+
+function getGrid(menu, columns) {
+  if (menu === 'party') return { columns: columns ?? PARTY_COLUMNS, rightAlignLast: true }
+  if (menu === 'summary') return { columns: 1, rightAlignLast: false }
+  return { columns: MENU_COLUMNS, rightAlignLast: false }
+}
+
+export function moveCursor(
+  index,
+  key,
+  count = MAIN_OPTIONS.length,
+  columns = MENU_COLUMNS,
+  rightAlignLast = false,
+) {
+  const last = count - 1
+  const lastCell = rightAlignLast ? last + (columns - 1 - (last % columns)) : last
+  const cell = index === last ? lastCell : index
+  const column = cell % columns
+  const nextCell = {
+    ArrowLeft: column > 0 ? cell - 1 : cell,
+    ArrowRight: column < columns - 1 && cell + 1 <= lastCell ? cell + 1 : cell,
+    ArrowUp: cell - columns >= 0 ? cell - columns : cell,
+    ArrowDown: cell + columns <= lastCell ? cell + columns : cell,
+  }[key]
+  if (nextCell === undefined) return index
+  return Math.min(nextCell, last)
 }
 
 export function getSelectionMessage(option) {
@@ -31,10 +52,14 @@ export function getHpPercent(hp, maxHp) {
   return Math.min(100, Math.max(0, (hp / maxHp) * 100))
 }
 
+export function getLead(state) {
+  return state.party[state.lead]
+}
+
 export function getPrompt(state) {
   if (state.menu === 'fight') return 'Choose a move.'
   if (state.menu === 'victory') return 'Want to battle again?'
-  return `What will ${state.player.name} do?`
+  return `What will ${getLead(state).name} do?`
 }
 
 export function createBattle() {
@@ -43,7 +68,9 @@ export function createBattle() {
     menu: 'main',
     cursor: 0,
     queue: [{ text: 'A Recruiter wants to battle!' }, { text: `Recruiter sent out ${team[0].name}!` }],
-    player: { ...player, hp: player.maxHp },
+    party: party.map((pokemon) => ({ ...pokemon, hp: pokemon.maxHp })),
+    lead: 0,
+    selected: 0,
     team,
     active: 0,
   }
@@ -64,10 +91,14 @@ export function takeTurn(state, moveIndex) {
   const hasNext = state.active + 1 < team.length
 
   if (hp > 0) {
-    const taken = Math.min(target.attack.damage, state.player.hp - 1)
+    const lead = getLead(state)
+    const taken = Math.min(target.attack.damage, lead.hp - 1)
+    const updated = state.party.map((pokemon, index) =>
+      index === state.lead ? { ...pokemon, hp: pokemon.hp - taken } : pokemon,
+    )
     queue.push({
-      text: `${target.name} used ${target.attack.name}! ${state.player.name} took ${taken} damage.`,
-      changes: { player: { ...state.player, hp: state.player.hp - taken } },
+      text: `${target.name} used ${target.attack.name}! ${lead.name} took ${taken} damage.`,
+      changes: { party: updated },
     })
   } else if (hasNext) {
     queue.push(
@@ -86,15 +117,23 @@ export function takeTurn(state, moveIndex) {
   return applyChanges({ ...state, menu, cursor: 0, queue }, queue[0])
 }
 
+function goBack(state) {
+  if (state.menu === 'fight') return { ...state, menu: 'main', cursor: 0 }
+  if (state.menu === 'party') return { ...state, menu: 'main', cursor: MAIN_OPTIONS.indexOf('PARTY') }
+  if (state.menu === 'summary') return { ...state, menu: 'party', cursor: state.selected }
+  return state
+}
+
 function selectOption(state, index) {
   const option = getMenuOptions(state.menu)[index]
   if (!option) return state
 
   if (state.menu === 'victory') return createBattle()
-  if (state.menu === 'fight') {
-    return option === 'BACK' ? { ...state, menu: 'main', cursor: 0 } : takeTurn(state, index)
-  }
+  if (option === 'BACK' || option === 'CANCEL') return goBack(state)
+  if (state.menu === 'fight') return takeTurn(state, index)
+  if (state.menu === 'party') return { ...state, menu: 'summary', selected: index, cursor: 0 }
   if (option === 'FIGHT') return { ...state, menu: 'fight', cursor: 0 }
+  if (option === 'PARTY') return { ...state, menu: 'party', cursor: 0 }
   return { ...state, cursor: index, queue: [{ text: getSelectionMessage(option) }] }
 }
 
@@ -108,10 +147,11 @@ export function battleReducer(state, action) {
   switch (action.type) {
     case 'cursor': {
       const count = getMenuOptions(state.menu).length
-      return { ...state, cursor: moveCursor(state.cursor, action.key, count) }
+      const { columns, rightAlignLast } = getGrid(state.menu, action.columns)
+      return { ...state, cursor: moveCursor(state.cursor, action.key, count, columns, rightAlignLast) }
     }
     case 'back':
-      return state.menu === 'fight' ? { ...state, menu: 'main', cursor: 0 } : state
+      return goBack(state)
     case 'select':
       return selectOption(state, action.index ?? state.cursor)
     default:
