@@ -1,5 +1,5 @@
 import { useReducer } from 'react'
-import useMediaQuery from '../hooks/useMediaQuery.js'
+import { useFrame } from '../hooks/useFrame.js'
 import { PARTY_COLUMNS, battleReducer, createBattle, getLead, getPrompt } from '../logic/battle.js'
 import BattleMenu from './BattleMenu.jsx'
 import PartyScreen from './PartyScreen.jsx'
@@ -15,14 +15,14 @@ export default function BattleScreen() {
   const opponent = state.team[state.active]
   const lead = getLead(state)
   const message = hasMessages ? state.queue[0].text : getPrompt(state)
-  const narrow = useMediaQuery('(max-width: 30rem)')
+  const { orientation } = useFrame()
 
   function handleKeyDown(event) {
     if (event.key === 'Escape') {
       dispatch({ type: 'back' })
     } else if (event.key.startsWith('Arrow')) {
       event.preventDefault()
-      dispatch({ type: 'cursor', key: event.key, columns: narrow ? 1 : PARTY_COLUMNS })
+      dispatch({ type: 'cursor', key: event.key, columns: orientation === 'portrait' ? 1 : PARTY_COLUMNS })
     }
   }
 

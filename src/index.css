@@ -8,4 +8,23 @@ body {
   color: #f8f8f8;
   font-family: 'Press Start 2P', 'Courier New', monospace;
   line-height: 1.5;
+  -webkit-font-smoothing: none;
+}
+
+.stage {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--screen);
+  color: var(--ink);
 }

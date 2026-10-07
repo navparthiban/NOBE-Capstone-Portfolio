@@ -1,5 +1,10 @@
 import BattleScreen from './components/BattleScreen.jsx'
+import GameFrame from './components/GameFrame.jsx'
 
 export default function App() {
-  return <BattleScreen />
+  return (
+    <GameFrame>
+      <BattleScreen />
+    </GameFrame>
+  )
 }
