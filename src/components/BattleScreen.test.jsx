@@ -1,42 +1,196 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import BattleScreen from './BattleScreen.jsx'
+
+beforeEach(() => {
+  vi.useFakeTimers()
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+function tick(ms) {
+  for (let elapsed = 0; elapsed < ms; elapsed += 25) {
+    act(() => vi.advanceTimersByTime(25))
+  }
+}
+
+function nextMessage() {
+  tick(3000)
+  fireEvent.click(screen.getByRole('button', { name: 'Next message' }))
+}
+
+function skipIntro() {
+  nextMessage()
+  nextMessage()
+}
 
 function press(key) {
   fireEvent.keyDown(document.activeElement, { key })
 }
 
-describe('BattleScreen', () => {
-  it('focuses FIGHT when it loads', () => {
+function clickOption(name) {
+  fireEvent.click(screen.getByRole('button', { name }))
+}
+
+function hasMenu() {
+  return screen.queryByRole('group', { name: 'Battle menu' }) !== null
+}
+
+function playReactTurn() {
+  clickOption('FIGHT')
+  clickOption('React')
+  while (!hasMenu()) nextMessage()
+}
+
+function status() {
+  return screen.getByRole('status')
+}
+
+describe('BattleScreen intro', () => {
+  it('plays the intro messages, then shows the menu with FIGHT focused', () => {
     render(<BattleScreen />)
-    expect(screen.getByRole('button', { name: /FIGHT/ })).toHaveFocus()
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+    expect(hasMenu()).toBe(false)
+    nextMessage()
+    expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
+    nextMessage()
+    expect(hasMenu()).toBe(true)
+    expect(status()).toHaveTextContent('What will NAVINMON do?')
+    expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
   })
 
-  it('moves the cursor with the arrow keys', () => {
+  it('types the message out, and a click finishes it before advancing', () => {
+    const { container } = render(<BattleScreen />)
+    const body = container.querySelector('.text-box__body')
+    tick(100)
+    expect(body).toHaveTextContent('A Re')
+    expect(body).not.toHaveTextContent('battle')
+    clickOption('Next message')
+    expect(body).toHaveTextContent('A Recruiter wants to battle!')
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+  })
+
+  it('focuses the text box so Enter can advance the message', () => {
     render(<BattleScreen />)
+    expect(screen.getByRole('button', { name: 'Next message' })).toHaveFocus()
+  })
+})
+
+describe('BattleScreen menus', () => {
+  it('moves the cursor with the arrow keys and stops at the edges', () => {
+    render(<BattleScreen />)
+    skipIntro()
     press('ArrowRight')
-    expect(screen.getByRole('button', { name: /BAG/ })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'BAG' })).toHaveFocus()
     press('ArrowDown')
-    expect(screen.getByRole('button', { name: /RUN/ })).toHaveFocus()
-  })
-
-  it('stays on FIGHT when pressing left or up at the edge', () => {
-    render(<BattleScreen />)
-    press('ArrowLeft')
-    press('ArrowUp')
-    expect(screen.getByRole('button', { name: /FIGHT/ })).toHaveFocus()
-  })
-
-  it('shows the matching message when an option is clicked', () => {
-    render(<BattleScreen />)
-    fireEvent.click(screen.getByRole('button', { name: /PARTY/ }))
-    expect(screen.getByText('Navin wants to PARTY!')).toBeInTheDocument()
-  })
-
-  it('shows the matching message when Enter selects the focused option', () => {
-    render(<BattleScreen />)
+    expect(screen.getByRole('button', { name: 'RUN' })).toHaveFocus()
     press('ArrowRight')
-    fireEvent.click(document.activeElement)
-    expect(screen.getByText('Navin wants to BAG!')).toBeInTheDocument()
+    press('ArrowDown')
+    expect(screen.getByRole('button', { name: 'RUN' })).toHaveFocus()
+  })
+
+  it('keeps placeholder messages for BAG', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    clickOption('BAG')
+    expect(status()).toHaveTextContent('Navin wants to BAG!')
+  })
+
+  it('opens the move menu with FIGHT and goes back with Escape', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    clickOption('FIGHT')
+    for (const name of ['React', 'TypeScript', 'Java', 'Git', 'BACK']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    }
+    expect(screen.getByRole('button', { name: 'React' })).toHaveFocus()
+    press('Escape')
+    expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
+  })
+
+  it('goes back with the BACK option', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    clickOption('FIGHT')
+    clickOption('BACK')
+    expect(screen.getByRole('button', { name: 'FIGHT' })).toBeInTheDocument()
+  })
+
+  it('moves through the move menu with arrows and stops at BACK', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    clickOption('FIGHT')
+    press('ArrowDown')
+    press('ArrowDown')
+    expect(screen.getByRole('button', { name: 'BACK' })).toHaveFocus()
+    press('ArrowDown')
+    press('ArrowRight')
+    expect(screen.getByRole('button', { name: 'BACK' })).toHaveFocus()
+  })
+})
+
+describe('BattleScreen battle', () => {
+  it('shows the move message and lowers the opponent HP bar', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    clickOption('FIGHT')
+    clickOption('React')
+    expect(status()).toHaveTextContent('Navin used React! It built the frontend.')
+    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute(
+      'aria-valuenow',
+      '20',
+    )
+  })
+
+  it('shows the Recruiter attacking back and returns to the menu', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playReactTurn()
+    expect(screen.getByRole('progressbar', { name: 'NAVINMON HP' })).toHaveAttribute(
+      'aria-valuenow',
+      '56',
+    )
+    expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
+  })
+
+  it('sends out the next Pokémon only when its message appears', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playReactTurn()
+    clickOption('FIGHT')
+    clickOption('React')
+    const bar = (name) => screen.queryByRole('progressbar', { name: `${name} HP` })
+
+    expect(status()).toHaveTextContent('Navin used React!')
+    expect(bar('SCREENMON')).toHaveAttribute('aria-valuenow', '0')
+    nextMessage()
+    expect(status()).toHaveTextContent('SCREENMON fainted!')
+    expect(bar('SCREENMON')).toBeInTheDocument()
+    expect(bar('HIREMON')).not.toBeInTheDocument()
+    nextMessage()
+    expect(status()).toHaveTextContent('Recruiter sent out HIREMON!')
+    expect(bar('HIREMON')).toHaveAttribute('aria-valuenow', '50')
+    expect(bar('SCREENMON')).not.toBeInTheDocument()
+  })
+
+  it('reaches victory and Rematch restarts the battle', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    for (let turn = 0; turn < 20 && !screen.queryByRole('button', { name: 'REMATCH' }); turn++) {
+      playReactTurn()
+    }
+    expect(screen.getByRole('button', { name: 'REMATCH' })).toHaveFocus()
+    clickOption('REMATCH')
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute(
+      'aria-valuenow',
+      '40',
+    )
+    expect(screen.getByRole('progressbar', { name: 'NAVINMON HP' })).toHaveAttribute(
+      'aria-valuenow',
+      '60',
+    )
   })
 })
