@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FrameContext } from '../hooks/useFrame.js'
 import BattleScreen from './BattleScreen.jsx'
@@ -282,8 +282,9 @@ describe('BattleScreen party', () => {
       expect(screen.getByRole('button', { name: new RegExp(`^${name}, level `) })).toBeInTheDocument()
       expect(screen.getByRole('progressbar', { name: `${name} HP` })).toBeInTheDocument()
     }
-    expect(screen.getByText('60/60')).toBeInTheDocument()
-    expect(screen.getByText('90/90')).toBeInTheDocument()
+    const partyScreen = within(screen.getByRole('region', { name: 'Party' }))
+    expect(partyScreen.getByText('60/60')).toBeInTheDocument()
+    expect(partyScreen.getByText('90/90')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^PORYGON/ })).toHaveFocus()
   })
 
@@ -431,6 +432,77 @@ describe('BattleScreen party', () => {
     clickOption('PARTY')
     expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute('aria-valuenow', '56')
     expect(screen.getByRole('progressbar', { name: 'MEOWTH HP' })).toHaveAttribute('aria-valuenow', '50')
+  })
+})
+
+describe('BattleScreen field', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', () => new Promise(() => {}))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function fieldSprites(container) {
+    return [container.querySelector('.sprite--player'), container.querySelector('.sprite--opponent')]
+  }
+
+  it('keeps the same sprites, so no send-out replays, after visiting PARTY and coming back', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    const before = fieldSprites(container)
+    clickOption('PARTY')
+    expect(screen.queryByRole('img', { name: 'SCREENMON sprite' })).not.toBeInTheDocument()
+    clickOption('CANCEL')
+    const after = fieldSprites(container)
+    expect(after[0]).toBe(before[0])
+    expect(after[1]).toBe(before[1])
+    clickOption('PARTY')
+    clickOption(/^ELECTRODE/)
+    clickOption('SUMMARY')
+    press('Escape')
+    press('Escape')
+    press('Escape')
+    expect(fieldSprites(container)[0]).toBe(before[0])
+    expect(fieldSprites(container)[1]).toBe(before[1])
+  })
+
+  it('keeps the same sprites after visiting BAG and coming back', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    const before = fieldSprites(container)
+    clickOption('BAG')
+    press('Escape')
+    expect(fieldSprites(container)[0]).toBe(before[0])
+    expect(fieldSprites(container)[1]).toBe(before[1])
+    expect(hasMenu()).toBe(true)
+  })
+
+  it('hides the field while another screen is open', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    const field = container.querySelector('.field')
+    expect(field).not.toHaveAttribute('aria-hidden', 'true')
+    clickOption('PARTY')
+    expect(field).toHaveAttribute('aria-hidden', 'true')
+    expect(field).toHaveClass('field--away')
+    clickOption('CANCEL')
+    expect(field).not.toHaveAttribute('aria-hidden', 'true')
+    expect(field).not.toHaveClass('field--away')
+  })
+
+  it('does not replay the send-out when coming back after a switch either', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    clickOption('PARTY')
+    clickOption(/^ALAKAZAM/)
+    clickOption('SWITCH')
+    while (!hasMenu()) nextMessage()
+    const before = fieldSprites(container)
+    clickOption('BAG')
+    press('Escape')
+    expect(fieldSprites(container)[0]).toBe(before[0])
   })
 })
 

@@ -19,6 +19,7 @@ export default function BattleScreen() {
   const { orientation } = useFrame()
   const opponentOut = state.fx.opponent !== 'hidden'
   const playerOut = state.fx.player !== 'hidden'
+  const onField = !['party', 'partyMenu', 'summary', 'bag'].includes(state.menu)
 
   function handleKeyDown(event) {
     if (event.key === 'Escape') {
@@ -34,6 +35,28 @@ export default function BattleScreen() {
   return (
     <main className="battle">
       <h1 className="visually-hidden">Navin's Portfolio</h1>
+      <section className={onField ? 'field' : 'field field--away'} aria-hidden={!onField} inert={!onField}>
+        {opponentOut && <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />}
+        {opponentOut && (
+          <Sprite
+            key={`${opponent.name}-${state.fx.opponent}`}
+            name={opponent.name}
+            src={opponent.sprite}
+            side="opponent"
+            fx={state.fx.opponent}
+          />
+        )}
+        {playerOut && (
+          <Sprite
+            key={`${lead.name}-${state.fx.player}`}
+            name={lead.name}
+            src={lead.sprite}
+            side="player"
+            fx={state.fx.player}
+          />
+        )}
+        {playerOut && <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />}
+      </section>
       {(state.menu === 'party' || state.menu === 'partyMenu') && (
         <PartyScreen
           party={state.party}
@@ -57,46 +80,22 @@ export default function BattleScreen() {
           onSelect={handleSelect}
         />
       )}
-      {!['party', 'partyMenu', 'summary', 'bag'].includes(state.menu) && (
-        <>
-          <section className="field">
-            {opponentOut && <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />}
-            {opponentOut && (
-              <Sprite
-                key={`${opponent.name}-${state.fx.opponent}`}
-                name={opponent.name}
-                src={opponent.sprite}
-                side="opponent"
-                fx={state.fx.opponent}
-              />
-            )}
-            {playerOut && (
-              <Sprite
-                key={`${lead.name}-${state.fx.player}`}
-                name={lead.name}
-                src={lead.sprite}
-                side="player"
-                fx={state.fx.player}
-              />
-            )}
-            {playerOut && <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />}
-          </section>
-          <section className={hasMessages ? 'panel panel--full' : 'panel'}>
-            <TextBox
-              message={message}
-              interactive={hasMessages}
-              onAdvance={() => dispatch({ type: 'advance' })}
+      {onField && (
+        <section className={hasMessages ? 'panel panel--full' : 'panel'}>
+          <TextBox
+            message={message}
+            interactive={hasMessages}
+            onAdvance={() => dispatch({ type: 'advance' })}
+          />
+          {!hasMessages && (
+            <BattleMenu
+              menu={state.menu}
+              cursor={state.cursor}
+              onKeyDown={handleKeyDown}
+              onSelect={handleSelect}
             />
-            {!hasMessages && (
-              <BattleMenu
-                menu={state.menu}
-                cursor={state.cursor}
-                onKeyDown={handleKeyDown}
-                onSelect={handleSelect}
-              />
-            )}
-          </section>
-        </>
+          )}
+        </section>
       )}
     </main>
   )

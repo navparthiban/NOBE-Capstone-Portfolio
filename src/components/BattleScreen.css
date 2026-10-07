@@ -46,6 +46,17 @@
   color: var(--ink);
 }
 
+/* Kept mounted but out of the way while PARTY or BAG is open. display: none would restart the animations. */
+.field--away {
+  position: absolute;
+  flex: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  border: 0;
+}
+
 .sprite {
   position: absolute;
   width: min(40cqh, 28cqw);
