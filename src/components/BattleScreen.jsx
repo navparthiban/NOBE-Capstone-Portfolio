@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { opponent, player } from '../data/pokemon.js'
-import { getMenuOptions, getSelectionMessage, moveCursor } from '../logic/battle.js'
+import { useReducer } from 'react'
+import { battleReducer, createBattle, getPrompt } from '../logic/battle.js'
 import BattleMenu from './BattleMenu.jsx'
 import PokemonStatus from './PokemonStatus.jsx'
 import Sprite from './Sprite.jsx'
@@ -8,18 +7,18 @@ import TextBox from './TextBox.jsx'
 import './BattleScreen.css'
 
 export default function BattleScreen() {
-  const [cursor, setCursor] = useState(0)
-  const [message, setMessage] = useState('A Recruiter wants to battle!')
+  const [state, dispatch] = useReducer(battleReducer, null, createBattle)
+  const hasMessages = state.queue.length > 0
+  const opponent = state.team[state.active]
+  const message = hasMessages ? state.queue[0] : getPrompt(state)
 
   function handleKeyDown(event) {
-    if (!event.key.startsWith('Arrow')) return
-    event.preventDefault()
-    setCursor(moveCursor(cursor, event.key))
-  }
-
-  function handleSelect(index) {
-    setCursor(index)
-    setMessage(getSelectionMessage(getMenuOptions()[index]))
+    if (event.key === 'Escape') {
+      dispatch({ type: 'back' })
+    } else if (event.key.startsWith('Arrow')) {
+      event.preventDefault()
+      dispatch({ type: 'cursor', key: event.key })
+    }
   }
 
   return (
@@ -28,12 +27,23 @@ export default function BattleScreen() {
       <section className="field">
         <PokemonStatus pokemon={opponent} side="opponent" />
         <Sprite name={opponent.name} src={opponent.sprite} side="opponent" />
-        <Sprite name={player.name} src={player.sprite} side="player" />
-        <PokemonStatus pokemon={player} side="player" />
+        <Sprite name={state.player.name} src={state.player.sprite} side="player" />
+        <PokemonStatus pokemon={state.player} side="player" />
       </section>
-      <section className="panel">
-        <TextBox message={message} />
-        <BattleMenu cursor={cursor} onKeyDown={handleKeyDown} onSelect={handleSelect} />
+      <section className={hasMessages ? 'panel panel--full' : 'panel'}>
+        <TextBox
+          message={message}
+          interactive={hasMessages}
+          onAdvance={() => dispatch({ type: 'advance' })}
+        />
+        {!hasMessages && (
+          <BattleMenu
+            menu={state.menu}
+            cursor={state.cursor}
+            onKeyDown={handleKeyDown}
+            onSelect={(index) => dispatch({ type: 'select', index })}
+          />
+        )}
       </section>
     </main>
   )
