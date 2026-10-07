@@ -1,10 +1,3 @@
-export const player = {
-  name: 'NAVINMON',
-  level: 18,
-  maxHp: 60,
-  sprite: null,
-}
-
 export const recruiterTeam = [
   {
     name: 'SCREENMON',

@@ -1,5 +1,5 @@
 import { useReducer } from 'react'
-import { battleReducer, createBattle, getPrompt } from '../logic/battle.js'
+import { battleReducer, createBattle, getLead, getPrompt } from '../logic/battle.js'
 import BattleMenu from './BattleMenu.jsx'
 import PokemonStatus from './PokemonStatus.jsx'
 import Sprite from './Sprite.jsx'
@@ -10,6 +10,7 @@ export default function BattleScreen() {
   const [state, dispatch] = useReducer(battleReducer, null, createBattle)
   const hasMessages = state.queue.length > 0
   const opponent = state.team[state.active]
+  const lead = getLead(state)
   const message = hasMessages ? state.queue[0].text : getPrompt(state)
 
   function handleKeyDown(event) {
@@ -27,8 +28,8 @@ export default function BattleScreen() {
       <section className="field">
         <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />
         <Sprite name={opponent.name} src={opponent.sprite} side="opponent" />
-        <Sprite name={state.player.name} src={state.player.sprite} side="player" />
-        <PokemonStatus pokemon={state.player} side="player" />
+        <Sprite name={lead.name} src={lead.sprite} side="player" />
+        <PokemonStatus pokemon={lead} side="player" />
       </section>
       <section className={hasMessages ? 'panel panel--full' : 'panel'}>
         <TextBox

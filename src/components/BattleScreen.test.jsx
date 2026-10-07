@@ -57,7 +57,7 @@ describe('BattleScreen intro', () => {
     expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
     nextMessage()
     expect(hasMenu()).toBe(true)
-    expect(status()).toHaveTextContent('What will NAVINMON do?')
+    expect(status()).toHaveTextContent('What will PORYGON do?')
     expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
   })
 
@@ -148,7 +148,7 @@ describe('BattleScreen battle', () => {
     render(<BattleScreen />)
     skipIntro()
     playReactTurn()
-    expect(screen.getByRole('progressbar', { name: 'NAVINMON HP' })).toHaveAttribute(
+    expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute(
       'aria-valuenow',
       '56',
     )
@@ -188,7 +188,7 @@ describe('BattleScreen battle', () => {
       'aria-valuenow',
       '40',
     )
-    expect(screen.getByRole('progressbar', { name: 'NAVINMON HP' })).toHaveAttribute(
+    expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute(
       'aria-valuenow',
       '60',
     )
