@@ -209,7 +209,23 @@ describe('createBattle', () => {
     expect(state.team).toHaveLength(3)
     expect(state.team.every((pokemon) => pokemon.hp === pokemon.maxHp)).toBe(true)
     expect(state.active).toBe(0)
-    expect(texts(state)).toEqual(['A Recruiter wants to battle!', 'Recruiter sent out SCREENMON!'])
+    expect(texts(state)).toEqual([
+      'A Recruiter wants to battle!',
+      'Recruiter sent out SCREENMON!',
+      'Go, PORYGON!',
+    ])
+  })
+
+  it('starts with both sides off the field and sends each out with its own message', () => {
+    let state = createBattle()
+    expect(state.fx).toEqual({ player: 'hidden', opponent: 'hidden' })
+    state = advance(state)
+    expect(texts(state)[0]).toBe('Recruiter sent out SCREENMON!')
+    expect(state.fx).toEqual({ player: 'hidden', opponent: 'sendout' })
+    state = advance(state)
+    expect(texts(state)[0]).toBe('Go, PORYGON!')
+    expect(state.fx).toEqual({ player: 'sendout', opponent: 'sendout' })
+    expect(clearQueue(state).fx).toEqual({ player: 'sendout', opponent: 'sendout' })
   })
 
   it('leads with the first Pokémon in the party', () => {
@@ -223,8 +239,8 @@ describe('message queue', () => {
   it('advances one message at a time', () => {
     let state = createBattle()
     state = advance(state)
-    expect(texts(state)).toEqual(['Recruiter sent out SCREENMON!'])
-    state = advance(state)
+    expect(texts(state)).toEqual(['Recruiter sent out SCREENMON!', 'Go, PORYGON!'])
+    state = advance(advance(state))
     expect(texts(state)).toEqual([])
   })
 
@@ -560,7 +576,8 @@ describe('switching', () => {
     expect(rematch).toEqual(createBattle())
     expect(rematch.lead).toBe(0)
     expect(rematch.party.every((pokemon) => pokemon.hp === pokemon.maxHp)).toBe(true)
-    expect(rematch.fx).toEqual({ player: null, opponent: null })
+    expect(rematch.fx).toEqual({ player: 'hidden', opponent: 'hidden' })
+    expect(texts(rematch)[0]).toBe('A Recruiter wants to battle!')
   })
 
   it("does not put the Recruiter's next Pokémon on the field until its send-out message", () => {
@@ -573,10 +590,7 @@ describe('switching', () => {
     const sendOut = seen.findIndex((entry) => entry.text === 'Recruiter sent out HIREMON!')
     expect(sendOut).toBeGreaterThan(0)
     expect(seen[sendOut]).toMatchObject({ active: 1, fx: 'sendout' })
-    for (const entry of seen.slice(0, sendOut)) {
-      expect(entry.active).toBe(0)
-      expect(entry.fx).toBe(null)
-    }
+    for (const entry of seen.slice(0, sendOut)) expect(entry.active).toBe(0)
   })
 })
 

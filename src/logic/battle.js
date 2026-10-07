@@ -67,16 +67,24 @@ export function getPrompt(state) {
 
 export function createBattle() {
   const team = recruiterTeam.map((pokemon) => ({ ...pokemon, hp: pokemon.maxHp }))
+  const leadPokemon = party[0]
   return {
     menu: 'main',
     cursor: 0,
-    queue: [{ text: 'A Recruiter wants to battle!' }, { text: `Recruiter sent out ${team[0].name}!` }],
+    queue: [
+      { text: 'A Recruiter wants to battle!' },
+      {
+        text: `Recruiter sent out ${team[0].name}!`,
+        changes: { fx: { player: 'hidden', opponent: 'sendout' } },
+      },
+      { text: `Go, ${leadPokemon.name}!`, changes: { fx: { player: 'sendout', opponent: 'sendout' } } },
+    ],
     party: party.map((pokemon) => ({ ...pokemon, hp: pokemon.maxHp })),
     lead: 0,
     selected: 0,
     team,
     active: 0,
-    fx: { player: null, opponent: null },
+    fx: { player: 'hidden', opponent: 'hidden' },
   }
 }
 
