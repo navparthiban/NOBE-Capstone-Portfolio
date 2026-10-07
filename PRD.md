@@ -7,7 +7,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - FIGHT: skills as moves (React, TypeScript, Java, Git). Built in step 4
 - PARTY: six Pokémon, each a project or experience, with a grid and a summary screen. Built
 - Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements
-- BAG: resume and links
+- BAG: resume and links. Built
 - Intro where the Professor asks the visitor's name, then a transition into the battle
 - Badge screen on winning, with contact info
 - RUN: a plain, separate portfolio page, designed after the game is done
@@ -29,12 +29,23 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - When a Recruiter Pokémon faints, the next one is sent out with a message.
 - When all three faint, the battle shows a victory message and a REMATCH option that resets everything.
 - Messages show one at a time with a typewriter effect. Enter or a click finishes the line, then moves to the next.
-- Escape or BACK returns from the move menu to the main menu. BAG and RUN still show placeholder messages.
+- Escape or BACK returns from the move menu to the main menu. RUN still shows a placeholder message.
 - Navin's lead Pokémon in the battle is the first one in the party (PORYGON). Its HP lives in the party list, so the party screen always shows its current HP.
 
 ## Party
 - PARTY opens a DS-style grid of Navin's six Pokémon, two per row. Each card shows a sprite box, name, level, HP bar, and HP numbers like 60/60. A text box along the bottom says "Choose a Pokémon.", with a CANCEL button at the bottom right.
 - The selected card is highlighted with a blue border and background. When a phone is held upright, the grid becomes a single column.
+
+## Bag
+- BAG opens a bag screen like the games': a bag picture box, a list of four items, and a text box along the bottom that describes the highlighted item, with CANCEL at the bottom right. It fills the same game frame as every other screen.
+- Items, in `src/data/bag.js` (the RUN page can reuse them):
+  - RESUME: `public/resume.pdf`, opens in a new tab
+  - GITHUB: https://github.com/navparthiban, new tab
+  - LINKEDIN: https://www.linkedin.com/in/navin-parthiban, new tab
+  - EMAIL: `mailto:navparthiban@gmail.com`
+- Items are real links, so Enter and a click open them. Web links use `target="_blank"` with `rel="noopener noreferrer"`, and screen readers hear "(opens in a new tab)".
+- Arrow keys move through the items and CANCEL without wrapping. Escape or CANCEL returns to the main menu with the cursor on BAG.
+- If `public/resume.pdf` is missing, RESUME still shows, but as a muted button, and the text box says "Resume isn't available yet." instead of linking to a broken page. If the check can't run (for example offline), RESUME stays a link.
 
 ## Game frame
 - The whole game sits in one frame with a fixed aspect ratio, centered in the browser both ways: 4:3 on desktops, tablets, and phones held sideways, and 3:4 on phones held upright, where it uses the full width.
@@ -63,13 +74,14 @@ Done: local project setup, GitHub repo and CI/CD pipeline, battle screen, battle
 
 Next:
 1. PARTY summaries (done)
-2. BAG
+2. BAG (done)
 3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements
 4. Intro with the Professor asking the visitor's name, the battle transition, and the badge screen
 5. RUN as a plain, separate portfolio page, designed after the game is done
 
 ## Known gaps
-- No real content yet (skills, resume, links)
+- No real content yet (skills). `public/resume.pdf` has not been added, so RESUME shows the "not available yet" message until it is
+- The GitHub and LinkedIn URLs in `src/data/bag.js` should be double-checked
 - Party descriptions, roles, type labels, levels, and HP are starter text for Navin to rewrite, and no dates are filled in yet
 - Pixel art and sprites not chosen
 - Intro and badge screens are planned for step 4 and not built yet
