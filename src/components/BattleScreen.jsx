@@ -1,6 +1,7 @@
 import { useReducer } from 'react'
 import { useFrame } from '../hooks/useFrame.js'
 import { PARTY_COLUMNS, battleReducer, createBattle, getLead, getPrompt } from '../logic/battle.js'
+import BagScreen from './BagScreen.jsx'
 import BattleMenu from './BattleMenu.jsx'
 import PartyScreen from './PartyScreen.jsx'
 import PartySummary from './PartySummary.jsx'
@@ -39,6 +40,9 @@ export default function BattleScreen() {
           onSelect={handleSelect}
         />
       )}
+      {state.menu === 'bag' && (
+        <BagScreen cursor={state.cursor} onKeyDown={handleKeyDown} onSelect={handleSelect} />
+      )}
       {state.menu === 'summary' && (
         <PartySummary
           pokemon={state.party[state.selected]}
@@ -47,7 +51,7 @@ export default function BattleScreen() {
           onSelect={handleSelect}
         />
       )}
-      {state.menu !== 'party' && state.menu !== 'summary' && (
+      {!['party', 'summary', 'bag'].includes(state.menu) && (
         <>
           <section className="field">
             <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />

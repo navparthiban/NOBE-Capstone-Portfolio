@@ -25,6 +25,7 @@
 /* Every screen fills the frame. Sizes are in em, so they scale with the frame's font size. */
 .battle,
 .party,
+.bag,
 .summary {
   display: flex;
   flex: 1;
@@ -306,7 +307,7 @@
   margin-top: 0;
 }
 
-.party__footer {
+.screen__footer {
   display: grid;
   grid-template-columns: 1fr auto;
   height: 4.5em;
@@ -314,11 +315,15 @@
   border: 0.25em solid var(--border);
 }
 
-.party__footer .text-box {
+.screen__footer--tall {
+  height: 7.5em;
+}
+
+.screen__footer .text-box {
   border-right: 0.25em solid var(--border);
 }
 
-.party__cancel {
+.screen__cancel {
   display: flex;
   align-items: center;
   gap: 0.25em;
@@ -331,12 +336,12 @@
   cursor: pointer;
 }
 
-.party__cancel--selected {
+.screen__cancel--selected {
   background: var(--selected-bg);
   box-shadow: inset 0 0 0 0.25em var(--focus);
 }
 
-.party__cancel:focus-visible {
+.screen__cancel:focus-visible {
   outline: 0.25em solid var(--focus);
   outline-offset: -0.25em;
 }
@@ -345,6 +350,89 @@
   position: static;
   flex: none;
   width: 4em;
+}
+
+/* Bag */
+.bag__body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 14em 1fr;
+  gap: 0.5em;
+  min-height: 0;
+}
+
+.bag__pocket {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  min-height: 0;
+  background: var(--screen);
+  border: 0.25em solid var(--border);
+  color: var(--ink);
+}
+
+.bag__art {
+  width: 50%;
+  aspect-ratio: 1;
+  background: var(--sprite-bg);
+  border: 0.25em dashed var(--border);
+}
+
+.bag__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  min-height: 0;
+  margin: 0;
+  padding: 0.5em;
+  list-style: none;
+  background: var(--panel);
+  border: 0.25em solid var(--border);
+  color: var(--ink);
+}
+
+.bag__list li {
+  flex: 1;
+  min-height: 0;
+}
+
+.bag__item {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.75em;
+  background: transparent;
+  border: 0.25em solid transparent;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bag__item:hover {
+  border-color: var(--focus);
+}
+
+.bag__item--selected,
+.bag__item--selected:hover {
+  background: var(--selected-bg);
+  border-color: var(--focus);
+  box-shadow: inset 0 0 0 0.25em var(--focus);
+}
+
+.bag__item--missing {
+  color: var(--hp-track);
+}
+
+.bag__item:focus-visible {
+  outline: 0.25em solid var(--focus);
+  outline-offset: 0.125em;
 }
 
 /* Summary */
@@ -463,8 +551,22 @@
   margin-left: auto;
 }
 
-.frame[data-orientation='portrait'] .party__footer .text-box {
+.frame[data-orientation='portrait'] .screen__footer .text-box {
   border-bottom: 0;
+}
+
+.frame[data-orientation='portrait'] .bag__body {
+  grid-template-columns: 1fr;
+  grid-template-rows: 9em 1fr;
+}
+
+.frame[data-orientation='portrait'] .bag__pocket {
+  flex-direction: row;
+}
+
+.frame[data-orientation='portrait'] .bag__art {
+  width: auto;
+  height: 50%;
 }
 
 .frame[data-orientation='portrait'] .summary__detail {

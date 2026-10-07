@@ -34,12 +34,12 @@ export default function PartyScreen({ party, cursor, onKeyDown, onSelect }) {
           </button>
         ))}
       </div>
-      <div className="party__footer">
+      <div className="screen__footer">
         <TextBox message="Choose a Pokémon." />
         <button
           ref={buttonRef(cancelIndex)}
           type="button"
-          className={cancelIndex === cursor ? 'party__cancel party__cancel--selected' : 'party__cancel'}
+          className={cancelIndex === cursor ? 'screen__cancel screen__cancel--selected' : 'screen__cancel'}
           tabIndex={cancelIndex === cursor ? 0 : -1}
           onClick={() => onSelect(cancelIndex)}
         >

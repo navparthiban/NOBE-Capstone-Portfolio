@@ -261,11 +261,9 @@ describe('menus', () => {
     expect(battleReducer(state, { type: 'back' })).toBe(state)
   })
 
-  it('queues placeholder messages for BAG and RUN', () => {
+  it('queues a placeholder message for RUN', () => {
     const state = clearQueue(createBattle())
-    const message = (index) => texts(select(state, index))
-    expect(message(1)).toEqual(['Navin wants to BAG!'])
-    expect(message(3)).toEqual(['Navin wants to RUN!'])
+    expect(texts(select(state, 3))).toEqual(['Navin wants to RUN!'])
   })
 
   it('moves the cursor through the move menu without wrapping', () => {
@@ -276,6 +274,53 @@ describe('menus', () => {
     state = battleReducer(state, { type: 'cursor', key: 'ArrowDown' })
     state = battleReducer(state, { type: 'cursor', key: 'ArrowRight' })
     expect(state.cursor).toBe(4)
+  })
+})
+
+describe('bag', () => {
+  const BAG_OPTION = 1
+  const openBag = (state) => select(clearQueue(state), BAG_OPTION)
+  const press = (state, key) => battleReducer(state, { type: 'cursor', key })
+
+  it('lists the four items and CANCEL', () => {
+    expect(getMenuOptions('bag')).toEqual(['RESUME', 'GITHUB', 'LINKEDIN', 'EMAIL', 'CANCEL'])
+  })
+
+  it('opens the bag from the main menu with the cursor on the first item', () => {
+    const state = openBag(createBattle())
+    expect(state.menu).toBe('bag')
+    expect(state.cursor).toBe(0)
+    expect(state.queue).toEqual([])
+  })
+
+  it('moves through one column and stops at both edges', () => {
+    let state = openBag(createBattle())
+    state = press(state, 'ArrowUp')
+    expect(state.cursor).toBe(0)
+    for (let i = 0; i < 6; i++) state = press(state, 'ArrowDown')
+    expect(state.cursor).toBe(4)
+    state = press(state, 'ArrowRight')
+    state = press(state, 'ArrowLeft')
+    expect(state.cursor).toBe(4)
+  })
+
+  it('returns to the main menu with the cursor on BAG using Escape', () => {
+    const state = battleReducer(press(openBag(createBattle()), 'ArrowDown'), { type: 'back' })
+    expect(state.menu).toBe('main')
+    expect(state.cursor).toBe(BAG_OPTION)
+  })
+
+  it('returns to the main menu with the cursor on BAG using CANCEL', () => {
+    const state = select(openBag(createBattle()), 4)
+    expect(state.menu).toBe('main')
+    expect(state.cursor).toBe(BAG_OPTION)
+  })
+
+  it('keeps the bag open when an item is selected', () => {
+    const state = select(openBag(createBattle()), 2)
+    expect(state.menu).toBe('bag')
+    expect(state.cursor).toBe(2)
+    expect(state.queue).toEqual([])
   })
 })
 
