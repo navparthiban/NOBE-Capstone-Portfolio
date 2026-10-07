@@ -194,3 +194,80 @@ describe('BattleScreen battle', () => {
     )
   })
 })
+
+describe('BattleScreen party', () => {
+  const partyNames = ['PORYGON', 'ELECTRODE', 'ALAKAZAM', 'MEOWTH', 'CHANSEY', 'MAGNETON']
+
+  function openParty() {
+    render(<BattleScreen />)
+    skipIntro()
+    clickOption('PARTY')
+  }
+
+  it('lists all six Pokémon with their level and HP bar', () => {
+    openParty()
+    for (const name of partyNames) {
+      expect(screen.getByRole('button', { name: new RegExp(`^${name}, level `) })).toBeInTheDocument()
+      expect(screen.getByRole('progressbar', { name: `${name} HP` })).toBeInTheDocument()
+    }
+    expect(screen.getByRole('button', { name: /^PORYGON/ })).toHaveFocus()
+  })
+
+  it('opens the matching summary with the keyboard', () => {
+    openParty()
+    press('ArrowDown')
+    press('ArrowDown')
+    expect(screen.getByRole('button', { name: /^ALAKAZAM/ })).toHaveFocus()
+    fireEvent.click(document.activeElement)
+    expect(screen.getByRole('heading', { name: /ALAKAZAM/ })).toBeInTheDocument()
+    expect(screen.getByText('Mathnasium')).toBeInTheDocument()
+    expect(screen.getByText('Math Instructor')).toBeInTheDocument()
+    expect(screen.getByText('Work')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'BACK' })).toHaveFocus()
+  })
+
+  it('opens the matching summary with a click', () => {
+    openParty()
+    clickOption(/^CHANSEY/)
+    expect(screen.getByRole('heading', { name: /CHANSEY/ })).toBeInTheDocument()
+    expect(screen.getByText('Edward Hospital')).toBeInTheDocument()
+  })
+
+  it('goes back one screen at a time with Escape', () => {
+    openParty()
+    press('ArrowDown')
+    fireEvent.click(document.activeElement)
+    expect(screen.getByRole('heading', { name: /ELECTRODE/ })).toBeInTheDocument()
+
+    press('Escape')
+    expect(screen.getByRole('button', { name: /^ELECTRODE/ })).toHaveFocus()
+
+    press('Escape')
+    expect(hasMenu()).toBe(true)
+    expect(screen.getByRole('button', { name: 'PARTY' })).toHaveFocus()
+  })
+
+  it('goes back with the BACK buttons', () => {
+    openParty()
+    clickOption(/^MEOWTH/)
+    clickOption('BACK')
+    expect(screen.getByRole('button', { name: /^MEOWTH/ })).toHaveFocus()
+    clickOption('BACK')
+    expect(screen.getByRole('button', { name: 'PARTY' })).toHaveFocus()
+  })
+
+  it('stays on the first Pokémon when pressing up at the top of the list', () => {
+    openParty()
+    press('ArrowUp')
+    expect(screen.getByRole('button', { name: /^PORYGON/ })).toHaveFocus()
+  })
+
+  it('shows the lead with lowered HP after a battle turn', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playReactTurn()
+    clickOption('PARTY')
+    expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute('aria-valuenow', '56')
+    expect(screen.getByRole('progressbar', { name: 'MEOWTH HP' })).toHaveAttribute('aria-valuenow', '50')
+  })
+})

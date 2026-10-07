@@ -1,6 +1,8 @@
 import { useReducer } from 'react'
 import { battleReducer, createBattle, getLead, getPrompt } from '../logic/battle.js'
 import BattleMenu from './BattleMenu.jsx'
+import PartyScreen from './PartyScreen.jsx'
+import PartySummary from './PartySummary.jsx'
 import PokemonStatus from './PokemonStatus.jsx'
 import Sprite from './Sprite.jsx'
 import TextBox from './TextBox.jsx'
@@ -22,30 +24,52 @@ export default function BattleScreen() {
     }
   }
 
+  const handleSelect = (index) => dispatch({ type: 'select', index })
+
   return (
     <main className="battle">
       <h1 className="visually-hidden">Navin's Portfolio</h1>
-      <section className="field">
-        <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />
-        <Sprite name={opponent.name} src={opponent.sprite} side="opponent" />
-        <Sprite name={lead.name} src={lead.sprite} side="player" />
-        <PokemonStatus pokemon={lead} side="player" />
-      </section>
-      <section className={hasMessages ? 'panel panel--full' : 'panel'}>
-        <TextBox
-          message={message}
-          interactive={hasMessages}
-          onAdvance={() => dispatch({ type: 'advance' })}
+      {state.menu === 'party' && (
+        <PartyScreen
+          party={state.party}
+          cursor={state.cursor}
+          onKeyDown={handleKeyDown}
+          onSelect={handleSelect}
         />
-        {!hasMessages && (
-          <BattleMenu
-            menu={state.menu}
-            cursor={state.cursor}
-            onKeyDown={handleKeyDown}
-            onSelect={(index) => dispatch({ type: 'select', index })}
-          />
-        )}
-      </section>
+      )}
+      {state.menu === 'summary' && (
+        <PartySummary
+          pokemon={state.party[state.selected]}
+          cursor={state.cursor}
+          onKeyDown={handleKeyDown}
+          onSelect={handleSelect}
+        />
+      )}
+      {state.menu !== 'party' && state.menu !== 'summary' && (
+        <>
+          <section className="field">
+            <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />
+            <Sprite name={opponent.name} src={opponent.sprite} side="opponent" />
+            <Sprite name={lead.name} src={lead.sprite} side="player" />
+            <PokemonStatus pokemon={lead} side="player" />
+          </section>
+          <section className={hasMessages ? 'panel panel--full' : 'panel'}>
+            <TextBox
+              message={message}
+              interactive={hasMessages}
+              onAdvance={() => dispatch({ type: 'advance' })}
+            />
+            {!hasMessages && (
+              <BattleMenu
+                menu={state.menu}
+                cursor={state.cursor}
+                onKeyDown={handleKeyDown}
+                onSelect={handleSelect}
+              />
+            )}
+          </section>
+        </>
+      )}
     </main>
   )
 }
