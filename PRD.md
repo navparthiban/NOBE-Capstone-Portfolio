@@ -42,6 +42,9 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - SWITCH on the Pokémon already in battle only shows "PORYGON is already in battle!" and returns to the party grid.
 - No switching after victory, because the victory screen only offers REMATCH. REMATCH restores every Pokémon's HP and puts the first one back in battle.
 
+## Battle start
+- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. REMATCH replays this intro.
+
 ## Animations
 - Recall: the Pokémon flashes and shrinks into a Pokéball. Send-out: a Pokéball appears, opens, and the Pokémon grows into place. The Recruiter's replacements use the same send-out.
 - An animation only starts when its message appears, so a new Pokémon never shows before the text says it was sent out.
@@ -96,7 +99,7 @@ Next:
 - The GitHub and LinkedIn URLs in `src/data/bag.js` should be double-checked
 - Party descriptions, roles, type labels, levels, and HP are starter text for Navin to rewrite, and no dates are filled in yet
 - Pixel art and sprites not chosen
-- The intro's first Recruiter Pokémon appears without an animation, and a fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
+- A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
 - While the small menu is open on the party screen, it covers part of the bottom-right card
 - Intro and badge screens are planned for step 4 and not built yet
 - Screen-reader behavior of the pixel-style UI is untested

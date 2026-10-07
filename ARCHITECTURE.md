@@ -55,7 +55,7 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
 }
 ```
 
-- `createBattle()` builds the starting state: everyone at full HP, intro messages queued. `getLead(state)` returns the party Pokémon that is fighting.
+- `createBattle()` builds the starting state: everyone at full HP, three intro messages queued, and both sides off the field. `getLead(state)` returns the party Pokémon that is fighting.
 - `battleReducer(state, action)` is the one entry point for changes. It never changes the old state; it returns a new one. Actions:
   - `cursor` (arrow key): moves the cursor with `moveCursor`, which stops at the edges. The main and move menus are a 2-column grid, the party screen is a 2-column grid (or 1 column, see below), and the summary has one column.
   - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, PARTY opens the party grid, a party Pokémon opens its small menu (SWITCH, SUMMARY, CANCEL), SWITCH calls `switchLead`, SUMMARY opens the summary, BACK or CANCEL goes back, REMATCH calls `createBattle()`. BAG opens the bag, and selecting a bag item only moves the cursor to it (the link itself is handled by the browser). RUN queues a placeholder message.
@@ -111,10 +111,10 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
   3. The Recruiter's attack on the new Pokémon, which lowers only that Pokémon's HP (never below 1)
 - Because `changes` apply when their message appears, the old Pokémon stays on screen through message 1, and the new one, with its name, level, and HP, only appears with message 2. HP lives in `party`, so each Pokémon keeps its own.
 - The party screen shows queued messages in its text box (for "already in battle") and advances them like the battle screen. `useMenuFocus` gets a version value so focus returns to the grid when the message is gone.
-- `createBattle()` (REMATCH) restores all HP, sets `lead` back to 0, and clears `fx`.
+- `createBattle()` (REMATCH) restores all HP, sets `lead` back to 0, and sets `fx` back to both sides hidden, so the intro plays again.
 
 ## How the animations work
-- `state.fx` is `{ player, opponent }`, each `null`, `'recall'`, or `'sendout'`. Like HP, a value is set by the message it belongs to. `takeTurn` sets `fx.opponent = 'sendout'` on "Recruiter sent out HIREMON!", so the Recruiter's replacements reuse the same animation.
+- `state.fx` is `{ player, opponent }`, each `'hidden'`, `'recall'`, or `'sendout'`. Like HP, a value is set by the message it belongs to. The battle starts with both `'hidden'`, and `BattleScreen` leaves out a hidden side's sprite and status box. The intro's "Recruiter sent out SCREENMON!" message sets `fx.opponent = 'sendout'`, and "Go, PORYGON!" sets `fx.player = 'sendout'`, which is what makes each side appear with its own message. `takeTurn` sets `fx.opponent = 'sendout'` on "Recruiter sent out HIREMON!", so the Recruiter's replacements reuse the same animation.
 - `BattleScreen` passes each side's `fx` to `Sprite`, with a `key` of the Pokémon's name plus its `fx`, so a new animation always starts fresh. `Sprite` sets `data-fx`, and wraps the image in `.sprite__body` with a `.sprite__ball` (the Pokéball SVG) beside it.
 - All the motion is CSS keyframes in `BattleScreen.css` (`recall`, `ball-in`, `grow`, `ball-out`). Recall ends with the sprite scaled to 0 and stays that way until the next message replaces it.
 - With reduced motion on, a media query turns the animations off and hides the ball, so the sprite just swaps. Logic tests check `fx` and the order of changes, because jsdom does not run CSS animations. The animation timing itself was checked in a real browser.
