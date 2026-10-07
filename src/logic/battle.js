@@ -42,38 +42,48 @@ export function createBattle() {
   return {
     menu: 'main',
     cursor: 0,
-    queue: ['A Recruiter wants to battle!', `Recruiter sent out ${team[0].name}!`],
+    queue: [{ text: 'A Recruiter wants to battle!' }, { text: `Recruiter sent out ${team[0].name}!` }],
     player: { ...player, hp: player.maxHp },
     team,
     active: 0,
   }
 }
 
+function applyChanges(state, message) {
+  return message?.changes ? { ...state, ...message.changes } : state
+}
+
 export function takeTurn(state, moveIndex) {
   const move = moves[moveIndex]
   if (state.menu !== 'fight' || !move) return state
 
-  const team = state.team.map((pokemon, index) =>
-    index === state.active ? { ...pokemon, hp: Math.max(0, pokemon.hp - move.damage) } : pokemon,
-  )
-  const target = team[state.active]
-  const queue = [move.message]
-  const next = { ...state, team, menu: 'main', cursor: 0, queue }
+  const target = state.team[state.active]
+  const hp = Math.max(0, target.hp - move.damage)
+  const team = state.team.map((pokemon, index) => (index === state.active ? { ...pokemon, hp } : pokemon))
+  const queue = [{ text: move.message, changes: { team } }]
+  const hasNext = state.active + 1 < team.length
 
-  if (target.hp > 0) {
+  if (hp > 0) {
     const taken = Math.min(target.attack.damage, state.player.hp - 1)
-    queue.push(`${target.name} used ${target.attack.name}! ${state.player.name} took ${taken} damage.`)
-    return { ...next, player: { ...state.player, hp: state.player.hp - taken } }
+    queue.push({
+      text: `${target.name} used ${target.attack.name}! ${state.player.name} took ${taken} damage.`,
+      changes: { player: { ...state.player, hp: state.player.hp - taken } },
+    })
+  } else if (hasNext) {
+    queue.push(
+      { text: `${target.name} fainted!` },
+      { text: `Recruiter sent out ${team[state.active + 1].name}!`, changes: { active: state.active + 1 } },
+    )
+  } else {
+    queue.push(
+      { text: `${target.name} fainted!` },
+      { text: 'Recruiter has no Pokémon left!' },
+      { text: 'Navin won the battle!' },
+    )
   }
 
-  queue.push(`${target.name} fainted!`)
-  if (state.active + 1 < team.length) {
-    queue.push(`Recruiter sent out ${team[state.active + 1].name}!`)
-    return { ...next, active: state.active + 1 }
-  }
-
-  queue.push('Recruiter has no Pokémon left!', 'Navin won the battle!')
-  return { ...next, menu: 'victory' }
+  const menu = hp === 0 && !hasNext ? 'victory' : 'main'
+  return applyChanges({ ...state, menu, cursor: 0, queue }, queue[0])
 }
 
 function selectOption(state, index) {
@@ -85,11 +95,14 @@ function selectOption(state, index) {
     return option === 'BACK' ? { ...state, menu: 'main', cursor: 0 } : takeTurn(state, index)
   }
   if (option === 'FIGHT') return { ...state, menu: 'fight', cursor: 0 }
-  return { ...state, cursor: index, queue: [getSelectionMessage(option)] }
+  return { ...state, cursor: index, queue: [{ text: getSelectionMessage(option) }] }
 }
 
 export function battleReducer(state, action) {
-  if (action.type === 'advance') return { ...state, queue: state.queue.slice(1) }
+  if (action.type === 'advance') {
+    const queue = state.queue.slice(1)
+    return applyChanges({ ...state, queue }, queue[0])
+  }
   if (state.queue.length > 0) return state
 
   switch (action.type) {

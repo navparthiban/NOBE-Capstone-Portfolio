@@ -33,7 +33,7 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
 {
   menu: 'main' | 'fight' | 'victory',  // which options the menu shows
   cursor: 0,                           // highlighted option
-  queue: ['message', ...],             // messages waiting to be read; queue[0] is on screen
+  queue: [{ text, changes }, ...],     // messages waiting to be read; queue[0] is on screen
   player: { name, level, hp, maxHp, sprite },
   team: [ ...three Recruiter Pokémon, each with its own hp and attack ],
   active: 0,                           // which Recruiter Pokémon is on the field
@@ -45,9 +45,10 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
   - `cursor` (arrow key): moves the cursor with `moveCursor`, which stops at the edges.
   - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, BACK goes back, REMATCH calls `createBattle()`. BAG, PARTY, and RUN queue a placeholder message.
   - `back` (Escape): leaves the move menu.
-  - `advance`: removes the message on screen from the queue.
+  - `advance`: removes the message on screen from the queue, then applies the changes of the next message.
 - While `queue` has messages, the reducer ignores everything except `advance`, so the visitor reads each message before acting.
 - `takeTurn(state, moveIndex)` plays one turn: the move hits (opponent HP stops at 0), then either the opponent faints (next one is sent out, or victory if it was the last) or it attacks back (player HP stops at 1). It queues a message for each step. After victory it does nothing.
+- Each queued message carries the `changes` that go with it: the move message lowers the opponent's HP, the counterattack message lowers the player's HP, and "Recruiter sent out HIREMON!" switches `active`. A change is applied when its message comes on screen, so the HP bars and the Pokémon on the field always match what the text box says. By the time the queue is empty, the state is the same as if everything had happened at once.
 
 ## How the components use it
 ```

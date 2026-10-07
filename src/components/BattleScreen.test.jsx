@@ -155,6 +155,26 @@ describe('BattleScreen battle', () => {
     expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
   })
 
+  it('sends out the next Pokémon only when its message appears', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playReactTurn()
+    clickOption('FIGHT')
+    clickOption('React')
+    const bar = (name) => screen.queryByRole('progressbar', { name: `${name} HP` })
+
+    expect(status()).toHaveTextContent('Navin used React!')
+    expect(bar('SCREENMON')).toHaveAttribute('aria-valuenow', '0')
+    nextMessage()
+    expect(status()).toHaveTextContent('SCREENMON fainted!')
+    expect(bar('SCREENMON')).toBeInTheDocument()
+    expect(bar('HIREMON')).not.toBeInTheDocument()
+    nextMessage()
+    expect(status()).toHaveTextContent('Recruiter sent out HIREMON!')
+    expect(bar('HIREMON')).toHaveAttribute('aria-valuenow', '50')
+    expect(bar('SCREENMON')).not.toBeInTheDocument()
+  })
+
   it('reaches victory and Rematch restarts the battle', () => {
     render(<BattleScreen />)
     skipIntro()

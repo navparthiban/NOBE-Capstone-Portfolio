@@ -19,6 +19,14 @@ function clearQueue(state) {
   return current
 }
 
+function texts(state) {
+  return state.queue.map((message) => message.text)
+}
+
+function advance(state) {
+  return battleReducer(state, { type: 'advance' })
+}
+
 function openFight(state) {
   return battleReducer(clearQueue(state), { type: 'select', index: 0 })
 }
@@ -115,17 +123,17 @@ describe('createBattle', () => {
     expect(state.team).toHaveLength(3)
     expect(state.team.every((pokemon) => pokemon.hp === pokemon.maxHp)).toBe(true)
     expect(state.active).toBe(0)
-    expect(state.queue).toEqual(['A Recruiter wants to battle!', 'Recruiter sent out SCREENMON!'])
+    expect(texts(state)).toEqual(['A Recruiter wants to battle!', 'Recruiter sent out SCREENMON!'])
   })
 })
 
 describe('message queue', () => {
   it('advances one message at a time', () => {
     let state = createBattle()
-    state = battleReducer(state, { type: 'advance' })
-    expect(state.queue).toEqual(['Recruiter sent out SCREENMON!'])
-    state = battleReducer(state, { type: 'advance' })
-    expect(state.queue).toEqual([])
+    state = advance(state)
+    expect(texts(state)).toEqual(['Recruiter sent out SCREENMON!'])
+    state = advance(state)
+    expect(texts(state)).toEqual([])
   })
 
   it('ignores menu input while messages are waiting', () => {
@@ -163,10 +171,10 @@ describe('menus', () => {
 
   it('queues placeholder messages for BAG, PARTY, and RUN', () => {
     const state = clearQueue(createBattle())
-    const bag = battleReducer(state, { type: 'select', index: 1 })
-    expect(bag.queue).toEqual(['Navin wants to BAG!'])
-    expect(battleReducer(state, { type: 'select', index: 2 }).queue).toEqual(['Navin wants to PARTY!'])
-    expect(battleReducer(state, { type: 'select', index: 3 }).queue).toEqual(['Navin wants to RUN!'])
+    const message = (index) => texts(battleReducer(state, { type: 'select', index }))
+    expect(message(1)).toEqual(['Navin wants to BAG!'])
+    expect(message(2)).toEqual(['Navin wants to PARTY!'])
+    expect(message(3)).toEqual(['Navin wants to RUN!'])
   })
 
   it('moves the cursor through the move menu without wrapping', () => {
@@ -184,34 +192,36 @@ describe('takeTurn', () => {
   it('lowers the opponent HP by the move damage and queues the move message', () => {
     const state = play(createBattle(), REACT)
     expect(state.team[0].hp).toBe(20)
-    expect(state.queue[0]).toBe('Navin used React! It built the frontend.')
+    expect(texts(state)[0]).toBe('Navin used React! It built the frontend.')
   })
 
   it('has the opponent attack back for small damage', () => {
     const state = play(createBattle(), REACT)
-    expect(state.player.hp).toBe(56)
-    expect(state.queue[1]).toBe('SCREENMON used Interview! NAVINMON took 4 damage.')
+    expect(texts(state)[1]).toBe('SCREENMON used Interview! NAVINMON took 4 damage.')
+    expect(clearQueue(state).player.hp).toBe(56)
   })
 
   it('sends out the next Pokémon when one faints, without a counterattack', () => {
     let state = play(createBattle(), REACT)
     state = play(state, REACT)
     expect(state.team[0].hp).toBe(0)
-    expect(state.active).toBe(1)
     expect(state.player.hp).toBe(56)
-    expect(state.queue).toEqual([
+    expect(texts(state)).toEqual([
       'Navin used React! It built the frontend.',
       'SCREENMON fainted!',
       'Recruiter sent out HIREMON!',
     ])
+    const finished = clearQueue(state)
+    expect(finished.active).toBe(1)
+    expect(finished.player.hp).toBe(56)
   })
 
   it('triggers victory after all three faint', () => {
     const state = playUntilVictory(createBattle(), REACT)
     expect(state.menu).toBe('victory')
     expect(state.team.every((pokemon) => pokemon.hp === 0)).toBe(true)
-    expect(state.queue.slice(-2)).toEqual(['Recruiter has no Pokémon left!', 'Navin won the battle!'])
-    expect(state.player.hp).toBeGreaterThanOrEqual(1)
+    expect(texts(state).slice(-2)).toEqual(['Recruiter has no Pokémon left!', 'Navin won the battle!'])
+    expect(clearQueue(state).player.hp).toBeGreaterThanOrEqual(1)
   })
 
   it('never drops opponent HP below 0', () => {
@@ -228,11 +238,11 @@ describe('takeTurn', () => {
       team: start.team.map((p, i) => (i === 0 ? { ...p, hp: 1000 } : p)),
     }
     state = play(state, GIT)
-    expect(state.player.hp).toBe(1)
-    expect(state.queue[1]).toContain('took 2 damage')
+    expect(texts(state)[1]).toContain('took 2 damage')
+    expect(clearQueue(state).player.hp).toBe(1)
     for (let turn = 0; turn < 5; turn++) state = play(state, GIT)
-    expect(state.player.hp).toBe(1)
-    expect(state.queue[1]).toContain('took 0 damage')
+    expect(texts(state)[1]).toContain('took 0 damage')
+    expect(clearQueue(state).player.hp).toBe(1)
   })
 
   it('ignores moves outside the fight menu and unknown moves', () => {
@@ -247,6 +257,36 @@ describe('takeTurn', () => {
     expect(takeTurn(victory, REACT)).toBe(victory)
     expect(battleReducer(victory, { type: 'back' })).toBe(victory)
     expect(battleReducer(victory, { type: 'select', index: 1 })).toBe(victory)
+  })
+})
+
+describe('changes appear with their messages', () => {
+  it('drops the opponent HP with the move and the player HP with the counterattack', () => {
+    let state = play(createBattle(), REACT)
+    expect(state.team[0].hp).toBe(20)
+    expect(state.player.hp).toBe(60)
+    state = advance(state)
+    expect(state.player.hp).toBe(56)
+  })
+
+  it('keeps the fainted Pokémon on the field until the next one is sent out', () => {
+    let state = play(play(createBattle(), REACT), REACT)
+    expect(state.team[0].hp).toBe(0)
+    expect(state.active).toBe(0)
+    state = advance(state)
+    expect(texts(state)[0]).toBe('SCREENMON fainted!')
+    expect(state.active).toBe(0)
+    state = advance(state)
+    expect(texts(state)[0]).toBe('Recruiter sent out HIREMON!')
+    expect(state.active).toBe(1)
+  })
+
+  it('ends up in the same state once every message has been read', () => {
+    const state = clearQueue(play(createBattle(), REACT))
+    expect(state.menu).toBe('main')
+    expect(state.active).toBe(0)
+    expect(state.team[0].hp).toBe(20)
+    expect(state.player.hp).toBe(56)
   })
 })
 

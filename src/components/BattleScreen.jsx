@@ -10,7 +10,7 @@ export default function BattleScreen() {
   const [state, dispatch] = useReducer(battleReducer, null, createBattle)
   const hasMessages = state.queue.length > 0
   const opponent = state.team[state.active]
-  const message = hasMessages ? state.queue[0] : getPrompt(state)
+  const message = hasMessages ? state.queue[0].text : getPrompt(state)
 
   function handleKeyDown(event) {
     if (event.key === 'Escape') {
