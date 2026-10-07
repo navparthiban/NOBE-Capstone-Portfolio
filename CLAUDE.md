@@ -33,3 +33,6 @@ React + Vite, plain CSS (no Tailwind), Vitest, ESLint. Vite base is `/NOBE-Capst
 - `npm test` run tests
 - `npm run lint` run ESLint
 - `npm run build` production build
+
+## Git workflow
+Main is protected. For each feature: make a branch, commit, push, open a PR, wait for the `check` job to pass, then squash-merge. Merging to main deploys the site.
