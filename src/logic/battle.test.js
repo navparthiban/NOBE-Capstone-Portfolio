@@ -34,8 +34,17 @@ function select(state, index) {
   return battleReducer(state, { type: 'select', index })
 }
 
+function recover(state) {
+  let current = clearQueue(state)
+  if (current.mustSwitch) {
+    const index = current.party.findIndex((pokemon) => pokemon.hp > 0)
+    current = clearQueue(select(select(current, index), 0))
+  }
+  return current
+}
+
 function openFight(state) {
-  return select(clearQueue(state), 0)
+  return select(recover(state), 0)
 }
 
 function openParty(state) {
@@ -447,7 +456,7 @@ describe('party', () => {
 
   it('shows lowered HP for the lead after a counterattack and full HP for the rest', () => {
     const state = clearQueue(play(createBattle(), REACT))
-    expect(state.party[0].hp).toBe(56)
+    expect(state.party[0].hp).toBe(50)
     expect(state.party.slice(1).every((pokemon) => pokemon.hp === pokemon.maxHp)).toBe(true)
   })
 
@@ -504,9 +513,9 @@ describe('switching', () => {
   it('has the Recruiter attack the new Pokémon after it is out', () => {
     let state = switchTo(clearQueue(createBattle()), ALAKAZAM)
     expect(texts(state)).toHaveLength(3)
-    expect(texts(state)[2]).toBe('SCREENMON used Interview! ALAKAZAM took 4 damage.')
+    expect(texts(state)[2]).toBe('SCREENMON used Interview! ALAKAZAM took 10 damage.')
     state = advance(advance(state))
-    expect(getLead(state).hp).toBe(51)
+    expect(getLead(state).hp).toBe(45)
     expect(state.party[0].hp).toBe(60)
   })
 
@@ -517,24 +526,16 @@ describe('switching', () => {
     expect(state.cursor).toBe(0)
   })
 
-  it('never lets the new Pokémon drop below 1 HP', () => {
-    const base = clearQueue(createBattle())
-    const weak = { ...base, party: base.party.map((pokemon, i) => (i === ALAKAZAM ? { ...pokemon, hp: 2 } : pokemon)) }
-    const state = switchTo(weak, ALAKAZAM)
-    expect(texts(state)[2]).toBe('SCREENMON used Interview! ALAKAZAM took 1 damage.')
-    expect(clearQueue(state).party[ALAKAZAM].hp).toBe(1)
-  })
-
   it("keeps each Pokémon's own HP when switching away and back", () => {
     let state = clearQueue(play(createBattle(), REACT))
-    expect(state.party[0].hp).toBe(56)
+    expect(state.party[0].hp).toBe(50)
     state = clearQueue(switchTo(state, ALAKAZAM))
-    expect(state.party[0].hp).toBe(56)
-    expect(state.party[ALAKAZAM].hp).toBe(51)
+    expect(state.party[0].hp).toBe(50)
+    expect(state.party[ALAKAZAM].hp).toBe(45)
     state = clearQueue(switchTo(state, 0))
     expect(getLead(state).name).toBe('PORYGON')
-    expect(getLead(state).hp).toBe(52)
-    expect(state.party[ALAKAZAM].hp).toBe(51)
+    expect(getLead(state).hp).toBe(40)
+    expect(state.party[ALAKAZAM].hp).toBe(45)
   })
 
   it('fights with the same four moves whichever Pokémon is out', () => {
@@ -603,15 +604,15 @@ describe('takeTurn', () => {
 
   it('has the opponent attack back for small damage', () => {
     const state = play(createBattle(), REACT)
-    expect(texts(state)[1]).toBe('SCREENMON used Interview! PORYGON took 4 damage.')
-    expect(getLead(clearQueue(state)).hp).toBe(56)
+    expect(texts(state)[1]).toBe('SCREENMON used Interview! PORYGON took 10 damage.')
+    expect(getLead(clearQueue(state)).hp).toBe(50)
   })
 
   it('sends out the next Pokémon when one faints, without a counterattack', () => {
     let state = play(createBattle(), REACT)
     state = play(state, REACT)
     expect(state.team[0].hp).toBe(0)
-    expect(getLead(state).hp).toBe(56)
+    expect(getLead(state).hp).toBe(50)
     expect(texts(state)).toEqual([
       'Navin used React! It built the frontend.',
       'SCREENMON fainted!',
@@ -619,7 +620,7 @@ describe('takeTurn', () => {
     ])
     const finished = clearQueue(state)
     expect(finished.active).toBe(1)
-    expect(getLead(finished).hp).toBe(56)
+    expect(getLead(finished).hp).toBe(50)
   })
 
   it('triggers victory after all three faint', () => {
@@ -636,11 +637,11 @@ describe('takeTurn', () => {
     expect(play(weak, REACT).team[0].hp).toBe(0)
   })
 
-  it('never drops the lead HP below 1, and reports the real damage', () => {
+  it('never drops the last Pokémon able to fight below 1 HP, and reports the real damage', () => {
     const start = createBattle()
     let state = {
       ...start,
-      party: start.party.map((p, i) => (i === 0 ? { ...p, hp: 3 } : p)),
+      party: start.party.map((p, i) => ({ ...p, hp: i === 0 ? 3 : 0 })),
       team: start.team.map((p, i) => (i === 0 ? { ...p, hp: 1000 } : p)),
     }
     state = play(state, GIT)
@@ -672,7 +673,7 @@ describe('changes appear with their messages', () => {
     expect(state.team[0].hp).toBe(20)
     expect(getLead(state).hp).toBe(60)
     state = advance(state)
-    expect(getLead(state).hp).toBe(56)
+    expect(getLead(state).hp).toBe(50)
   })
 
   it('keeps the fainted Pokémon on the field until the next one is sent out', () => {
@@ -692,7 +693,153 @@ describe('changes appear with their messages', () => {
     expect(state.menu).toBe('main')
     expect(state.active).toBe(0)
     expect(state.team[0].hp).toBe(20)
-    expect(getLead(state).hp).toBe(56)
+    expect(getLead(state).hp).toBe(50)
+  })
+})
+
+describe('fainting and forced switching', () => {
+  const ALAKAZAM = 2
+  const press = (state, key) => battleReducer(state, { type: 'cursor', key })
+  const withHp = (state, hps) => ({
+    ...state,
+    party: state.party.map((pokemon, i) => (i in hps ? { ...pokemon, hp: hps[i] } : pokemon)),
+  })
+  const faintedLead = () => play(withHp(clearQueue(createBattle()), { 0: 5 }), REACT)
+  const forcedParty = () => clearQueue(faintedLead())
+
+  it('lets a Pokémon faint when others can still fight, with the faint message last', () => {
+    const state = faintedLead()
+    expect(texts(state)).toEqual([
+      'Navin used React! It built the frontend.',
+      'SCREENMON used Interview! PORYGON took 5 damage.',
+      'PORYGON fainted!',
+    ])
+  })
+
+  it('applies the faint only when its message appears', () => {
+    let state = faintedLead()
+    expect(state.mustSwitch).toBe(false)
+    expect(state.fx.player).toBe('sendout')
+    state = advance(state)
+    expect(state.party[0].hp).toBe(0)
+    expect(state.mustSwitch).toBe(false)
+    state = advance(state)
+    expect(texts(state)[0]).toBe('PORYGON fainted!')
+    expect(state.mustSwitch).toBe(true)
+    expect(state.fx.player).toBe('faint')
+    expect(state.menu).toBe('main')
+  })
+
+  it('opens the party by itself once the messages are read, on the first Pokémon able to fight', () => {
+    const state = forcedParty()
+    expect(state.menu).toBe('party')
+    expect(state.mustSwitch).toBe(true)
+    expect(state.cursor).toBe(1)
+    expect(state.queue).toEqual([])
+  })
+
+  it('does not let the visitor leave the party with Escape or CANCEL', () => {
+    const state = forcedParty()
+    expect(battleReducer(state, { type: 'back' })).toBe(state)
+    expect(select(state, 6)).toBe(state)
+  })
+
+  it('keeps the cursor on the Pokémon, never on CANCEL', () => {
+    let state = forcedParty()
+    for (let i = 0; i < 6; i++) state = press(state, 'ArrowDown')
+    expect(state.cursor).toBe(5)
+    expect(press(press(state, 'ArrowRight'), 'ArrowDown').cursor).toBe(5)
+  })
+
+  it('still opens the small menu and the summary for a Pokémon while forced', () => {
+    const menu = select(forcedParty(), ALAKAZAM)
+    expect(menu.menu).toBe('partyMenu')
+    const summary = select(menu, 1)
+    expect(summary.menu).toBe('summary')
+    const back = battleReducer(summary, { type: 'back' })
+    expect(back.menu).toBe('party')
+    expect(back.mustSwitch).toBe(true)
+    expect(battleReducer(menu, { type: 'back' }).menu).toBe('party')
+  })
+
+  it('sends out the chosen Pokémon without a recall or a Recruiter attack', () => {
+    const forced = forcedParty()
+    const state = select(select(forced, ALAKAZAM), 0)
+    expect(texts(state)).toEqual(['Go, ALAKAZAM!'])
+    const done = clearQueue(state)
+    expect(done.menu).toBe('main')
+    expect(done.mustSwitch).toBe(false)
+    expect(done.lead).toBe(ALAKAZAM)
+    expect(done.fx.player).toBe('sendout')
+    expect(done.party[ALAKAZAM].hp).toBe(55)
+    expect(done.team).toEqual(forced.team)
+  })
+
+  it('does not let the visitor pick a Pokémon that has fainted', () => {
+    const forced = forcedParty()
+    const state = select(select(forced, 0), 0)
+    expect(texts(state)).toEqual(['PORYGON has no energy left!'])
+    const done = clearQueue(state)
+    expect(done.menu).toBe('party')
+    expect(done.mustSwitch).toBe(true)
+    expect(done.lead).toBe(0)
+    expect(done.cursor).toBe(0)
+  })
+
+  it('blocks a voluntary switch to a fainted Pokémon without a Recruiter attack', () => {
+    const base = withHp(clearQueue(createBattle()), { 3: 0 })
+    const state = select(select(openParty(base), 3), 0)
+    expect(texts(state)).toEqual(['MEOWTH has no energy left!'])
+    const done = clearQueue(state)
+    expect(done.lead).toBe(0)
+    expect(done.party[0].hp).toBe(60)
+    expect(done.team).toEqual(base.team)
+  })
+
+  it('keeps a fainted Pokémon at 0 HP after the party changes', () => {
+    const state = clearQueue(select(select(forcedParty(), ALAKAZAM), 0))
+    expect(state.party[0].hp).toBe(0)
+    expect(state.party.slice(1).every((pokemon) => pokemon.hp > 0)).toBe(true)
+  })
+
+  it('lets the new Pokémon faint too when a switch puts it in front of the counterattack', () => {
+    const base = withHp(clearQueue(createBattle()), { [ALAKAZAM]: 5 })
+    const state = select(select(openParty(base), ALAKAZAM), 0)
+    expect(texts(state)).toEqual([
+      'Come back, PORYGON!',
+      'Go, ALAKAZAM!',
+      'SCREENMON used Interview! ALAKAZAM took 5 damage.',
+      'ALAKAZAM fainted!',
+    ])
+    const done = clearQueue(state)
+    expect(done.menu).toBe('party')
+    expect(done.mustSwitch).toBe(true)
+    expect(done.party[ALAKAZAM].hp).toBe(0)
+  })
+
+  it('never faints the last Pokémon able to fight, so the visitor cannot lose', () => {
+    const base = clearQueue(createBattle())
+    const alone = withHp(base, { 0: 3, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 })
+    const state = play(alone, GIT)
+    expect(texts(state)[1]).toBe('SCREENMON used Interview! PORYGON took 2 damage.')
+    expect(texts(state)).toHaveLength(2)
+    const done = clearQueue(state)
+    expect(done.party[0].hp).toBe(1)
+    expect(done.mustSwitch).toBe(false)
+    expect(done.menu).toBe('main')
+  })
+
+  it('still ends in victory in a long battle that needs forced switches', () => {
+    const state = playUntilVictory(createBattle(), GIT)
+    expect(state.menu).toBe('victory')
+    expect(state.party.some((pokemon) => pokemon.hp === 0)).toBe(true)
+    expect(state.party.some((pokemon) => pokemon.hp > 0)).toBe(true)
+  })
+
+  it('resets the forced switch and every HP on rematch', () => {
+    const rematch = select(clearQueue(playUntilVictory(createBattle(), GIT)), 0)
+    expect(rematch).toEqual(createBattle())
+    expect(rematch.mustSwitch).toBe(false)
   })
 })
 
