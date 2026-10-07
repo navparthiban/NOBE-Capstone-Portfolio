@@ -310,9 +310,13 @@
 .screen__footer {
   display: grid;
   grid-template-columns: 1fr auto;
-  height: 5.5em;
+  height: 4.5em;
   background: var(--panel);
   border: 0.25em solid var(--border);
+}
+
+.screen__footer--tall {
+  height: 7.5em;
 }
 
 .screen__footer .text-box {

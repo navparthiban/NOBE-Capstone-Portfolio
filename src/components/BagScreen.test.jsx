@@ -75,6 +75,57 @@ describe('BagScreen links', () => {
   })
 })
 
+describe('BagScreen email', () => {
+  function stubClipboard(writeText) {
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+  }
+
+  it('shows the email address in the description', async () => {
+    stubFetch(pdf)
+    await renderBag(3)
+    expect(screen.getByRole('status')).toHaveTextContent('Send Navin an email: navparthiban@gmail.com')
+  })
+
+  it('copies the address and says so when EMAIL is clicked', async () => {
+    stubFetch(pdf)
+    const writeText = vi.fn(() => Promise.resolve())
+    stubClipboard(writeText)
+    await renderBag(3)
+    fireEvent.click(screen.getByRole('link', { name: /EMAIL/ }))
+    await act(async () => {})
+    expect(writeText).toHaveBeenCalledWith('navparthiban@gmail.com')
+    expect(screen.getByRole('status')).toHaveTextContent('Email address copied!')
+  })
+
+  it('keeps showing the address if copying is not allowed', async () => {
+    stubFetch(pdf)
+    stubClipboard(vi.fn(() => Promise.reject(new Error('denied'))))
+    await renderBag(3)
+    fireEvent.click(screen.getByRole('link', { name: /EMAIL/ }))
+    await act(async () => {})
+    expect(screen.getByRole('status')).toHaveTextContent('navparthiban@gmail.com')
+    expect(screen.getByRole('status')).not.toHaveTextContent('copied')
+  })
+
+  it('does not break when the browser has no clipboard', async () => {
+    stubFetch(pdf)
+    vi.stubGlobal('navigator', { ...navigator, clipboard: undefined })
+    await renderBag(3)
+    fireEvent.click(screen.getByRole('link', { name: /EMAIL/ }))
+    await act(async () => {})
+    expect(screen.getByRole('status')).toHaveTextContent('navparthiban@gmail.com')
+  })
+
+  it('does not copy anything for the other items', async () => {
+    stubFetch(pdf)
+    const writeText = vi.fn(() => Promise.resolve())
+    stubClipboard(writeText)
+    await renderBag(1)
+    fireEvent.click(screen.getByRole('link', { name: /GITHUB/ }))
+    expect(writeText).not.toHaveBeenCalled()
+  })
+})
+
 describe('BagScreen when the resume is missing', () => {
   const message = "Resume isn't available yet."
 

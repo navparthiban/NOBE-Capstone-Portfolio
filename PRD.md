@@ -42,7 +42,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
   - RESUME: `public/resume.pdf`, opens in a new tab
   - GITHUB: https://github.com/navparthiban, new tab
   - LINKEDIN: https://www.linkedin.com/in/navin-parthiban, new tab
-  - EMAIL: `mailto:navparthiban@gmail.com`
+  - EMAIL: `mailto:navparthiban@gmail.com`. The address is also written in its description ("Send Navin an email: navparthiban@gmail.com"), and clicking EMAIL copies it and says "Email address copied!", because a computer with no mail app does nothing with a `mailto:` link
 - Items are real links, so Enter and a click open them. Web links use `target="_blank"` with `rel="noopener noreferrer"`, and screen readers hear "(opens in a new tab)".
 - Arrow keys move through the items and CANCEL without wrapping. Escape or CANCEL returns to the main menu with the cursor on BAG.
 - If `public/resume.pdf` is missing, RESUME still shows, but as a muted button, and the text box says "Resume isn't available yet." instead of linking to a broken page. If the check can't run (for example offline), RESUME stays a link.

@@ -84,7 +84,9 @@ key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state ->
 ## How the bag works
 - `getMenuOptions('bag')` is the item names from `src/data/bag.js` plus CANCEL, in one column.
 - `BagScreen` draws each item as a real link (`<a>`), so Enter and a click open it with no extra code. Web links get `target="_blank"` and `rel="noopener noreferrer"` plus hidden text saying they open in a new tab. The email link is a plain `mailto:`. Clicking an item also moves the cursor to it.
-- The description text box shows the highlighted item's `description`.
+- The description text box shows the highlighted item's `description`. EMAIL's description includes the address itself, since a `mailto:` link does nothing on a computer with no mail app.
+- An item with `copyText` (only EMAIL) also copies that text to the clipboard when clicked, and the text box then shows its `copiedMessage`. If the browser has no clipboard or refuses, nothing changes and the address stays visible.
+- The bag's footer uses `screen__footer--tall` so the address fits on its own line without breaking.
 - The resume file is added by hand as `public/resume.pdf`, so it may not exist. `useFileAvailable` sends a `HEAD` request for it. If the answer is not OK, or is not a PDF, `BagScreen` draws RESUME as a muted `aria-disabled` button and shows the item's `missingMessage` instead. The PDF check matters because the dev server answers a missing file with the home page and a 200. If the request itself fails (for example offline), the file is assumed to exist, so a good link is never hidden by mistake.
 - When RESUME changes between a link and a button, the element is replaced, so `useMenuFocus` takes an extra value to re-focus the cursor's item. Without it, keyboard focus would be lost.
 - `PartyScreen` and `BagScreen` share the `screen__footer` and `screen__cancel` styles for the text box with CANCEL along the bottom.
@@ -116,5 +118,5 @@ The summary screen builds its buttons from `getMenuOptions('summary')`, which is
 - `party.test.js` checks that the party data has six unique Pokémon with the fields the screens need.
 - `BattleScreen.test.jsx` plays the real screen with fake timers: the intro, typing and advancing, menus with arrows and Escape, a full battle to victory, Rematch, and the party list and summaries.
 - `bag.test.js` checks the bag data: four unique items with the exact links.
-- `BagScreen.test.jsx` stubs `fetch` and checks each link, the new-tab attributes, the descriptions, and the resume cases: found, 404, a non-PDF answer, and a failed request.
+- `BagScreen.test.jsx` stubs `fetch` and checks each link, the new-tab attributes, the descriptions, copying the email address (including when the clipboard is refused or missing), and the resume cases: found, 404, a non-PDF answer, and a failed request.
 - `PartySummary.test.jsx` checks that a Pokémon with missing optional fields still renders.

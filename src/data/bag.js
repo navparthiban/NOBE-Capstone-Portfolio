@@ -22,7 +22,9 @@ export const bagItems = [
   },
   {
     name: 'EMAIL',
-    description: 'Send Navin an email.',
+    description: 'Send Navin an email: navparthiban@gmail.com',
+    copyText: 'navparthiban@gmail.com',
+    copiedMessage: 'Email address copied!',
     url: 'mailto:navparthiban@gmail.com',
     external: false,
   },

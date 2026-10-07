@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { bagItems } from '../data/bag.js'
 import useFileAvailable from '../hooks/useFileAvailable.js'
 import useMenuFocus from '../hooks/useMenuFocus.js'
@@ -8,8 +9,26 @@ export default function BagScreen({ cursor, onKeyDown, onSelect }) {
   const buttonRef = useMenuFocus(cursor, 'bag', resumeAvailable)
   const cancelIndex = bagItems.length
   const isMissing = (item) => item.missingMessage !== undefined && !resumeAvailable
+  const [copied, setCopied] = useState(null)
   const current = bagItems[cursor]
-  const message = !current ? 'Close the bag.' : isMissing(current) ? current.missingMessage : current.description
+  const message = !current
+    ? 'Close the bag.'
+    : isMissing(current)
+      ? current.missingMessage
+      : copied === current.name
+        ? current.copiedMessage
+        : current.description
+
+  function handleClick(item, index) {
+    setCopied(null)
+    onSelect(index)
+    if (item.copyText) {
+      navigator.clipboard
+        ?.writeText(item.copyText)
+        .then(() => setCopied(item.name))
+        .catch(() => {})
+    }
+  }
 
   return (
     <section className="bag" aria-label="Bag" onKeyDown={onKeyDown}>
@@ -35,7 +54,7 @@ export default function BagScreen({ cursor, onKeyDown, onSelect }) {
                     className={`${className} bag__item--missing`}
                     aria-disabled="true"
                     tabIndex={index === cursor ? 0 : -1}
-                    onClick={() => onSelect(index)}
+                    onClick={() => handleClick(item, index)}
                   >
                     {cursorMark}
                     {item.name}
@@ -48,7 +67,7 @@ export default function BagScreen({ cursor, onKeyDown, onSelect }) {
                     href={item.url}
                     {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                     tabIndex={index === cursor ? 0 : -1}
-                    onClick={() => onSelect(index)}
+                    onClick={() => handleClick(item, index)}
                   >
                     {cursorMark}
                     {item.name}
@@ -60,7 +79,7 @@ export default function BagScreen({ cursor, onKeyDown, onSelect }) {
           })}
         </ul>
       </div>
-      <div className="screen__footer">
+      <div className="screen__footer screen__footer--tall">
         <TextBox message={message} />
         <button
           ref={buttonRef(cancelIndex)}
