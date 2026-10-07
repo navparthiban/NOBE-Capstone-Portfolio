@@ -12,6 +12,7 @@ src/
   hooks/
     useTypewriter.js   reveals message text one character at a time
     useMenuFocus.js    keeps browser focus on the button at the cursor
+    useMediaQuery.js   tells a component whether a CSS media query (like a narrow screen) matches
   components/          React components
     BattleScreen.jsx   runs the battle reducer and decides which screen to show
     BattleScreen.css   all styling
@@ -20,7 +21,7 @@ src/
     PokemonStatus.jsx  name and level above an HP bar
     HpBar.jsx          the HP bar, used by the battle and the party screens
     Sprite.jsx         sprite image or placeholder box
-    PartyScreen.jsx    the party list
+    PartyScreen.jsx    the party grid, with the "Choose a Pokémon." text box and CANCEL
     PartySummary.jsx   one Pokémon's summary
     BattleScreen.test.jsx, PartySummary.test.jsx
   data/
@@ -50,9 +51,9 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
 
 - `createBattle()` builds the starting state: everyone at full HP, intro messages queued. `getLead(state)` returns the party Pokémon that is fighting.
 - `battleReducer(state, action)` is the one entry point for changes. It never changes the old state; it returns a new one. Actions:
-  - `cursor` (arrow key): moves the cursor with `moveCursor`, which stops at the edges. The party and summary lists have one column, so only up and down do anything there.
-  - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, PARTY opens the party list, a party Pokémon opens its summary, BACK goes back, REMATCH calls `createBattle()`. BAG and RUN queue a placeholder message.
-  - `back` (Escape): goes back one screen. Move menu to main, party list to main (cursor on PARTY), and summary to the party list (cursor on that Pokémon). On the main menu it does nothing.
+  - `cursor` (arrow key): moves the cursor with `moveCursor`, which stops at the edges. The main and move menus are a 2-column grid, the party screen is a 2-column grid (or 1 column, see below), and the summary has one column.
+  - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, PARTY opens the party grid, a party Pokémon opens its summary, BACK or CANCEL goes back, REMATCH calls `createBattle()`. BAG and RUN queue a placeholder message.
+  - `back` (Escape): goes back one screen. Move menu to main, party grid to main (cursor on PARTY), and summary to the party grid (cursor on that Pokémon). On the main menu it does nothing.
   - `advance`: removes the message on screen from the queue, then applies the changes of the next message.
 - While `queue` has messages, the reducer ignores everything except `advance`, so the visitor reads each message before acting.
 - `takeTurn(state, moveIndex)` plays one turn: the move hits (opponent HP stops at 0), then either the opponent faints (next one is sent out, or victory if it was the last) or it attacks back (the lead's HP stops at 1). It queues a message for each step. After victory it does nothing.
@@ -68,6 +69,11 @@ key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state ->
 - `BattleMenu`, `PartyScreen`, and `PartySummary` all use `useMenuFocus`, which moves browser focus to the button at `cursor`. Only that button is in the Tab order.
 - `useTypewriter` only controls how fast the text appears. It skips the animation if the visitor prefers reduced motion. Screen readers read the full message once from a hidden live region instead of letter by letter.
 - `HpBar` calls `getHpPercent` to size the bar. `PokemonStatus` and the party rows both use it. The opponent shown is `team[active]` and Navin's is `getLead(state)`.
+
+## How the party grid cursor works
+- The six cards are cursor positions 0 to 5 in a 2-column grid, and CANCEL is position 6. CANCEL is drawn at the bottom right, so `moveCursor` takes an optional `rightAlignLast` flag that treats the last option as sitting in the last column. With the flag off, which is how the main and move menus use it, nothing changes.
+- With the flag on: arrows move between neighboring cards, Down from either bottom card lands on CANCEL, Up from CANCEL goes to the bottom-right card, and every other move at an edge leaves the cursor where it is.
+- On narrow screens (30rem and under) the cards stack in one column. The cursor has to match what is drawn, or Down would skip a card, so `BattleScreen` uses `useMediaQuery` with the same 30rem breakpoint as the CSS and sends the column count (1 or 2) with each arrow-key action. The reducer uses it for the party grid only.
 
 ## Adding SWITCH later
 The summary screen builds its buttons from `getMenuOptions('summary')`, which is `['BACK']` today. To add switching, put `'SWITCH'` in that list, handle it in `selectOption` in `battle.js` by changing `lead`, and nothing in the components has to change.

@@ -5,7 +5,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 
 ## Features
 - FIGHT: skills as moves (React, TypeScript, Java, Git). Built in step 4
-- PARTY: six Pokémon, each a project or experience, with a list and a summary screen. Built
+- PARTY: six Pokémon, each a project or experience, with a grid and a summary screen. Built
 - Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements
 - BAG: resume and links
 - Intro where the Professor asks the visitor's name, then a transition into the battle
@@ -33,9 +33,11 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - Navin's lead Pokémon in the battle is the first one in the party (PORYGON). Its HP lives in the party list, so the party screen always shows its current HP.
 
 ## Party
-- PARTY opens a list of Navin's six Pokémon. Each row shows a sprite box, name, level, and HP bar, and the list ends with a BACK row.
+- PARTY opens a DS-style grid of Navin's six Pokémon, two per row. Each card shows a sprite box, name, level, HP bar, and HP numbers like 60/60. A text box along the bottom says "Choose a Pokémon.", with a CANCEL button at the bottom right.
+- The selected card is highlighted with a blue border and background. On narrow phone screens the grid becomes a single column.
 - Selecting a Pokémon opens its summary: experience, type label, role, dates, and a short description. Any optional field that is missing is left out.
-- Arrow keys move through the list, Enter or a click selects, and Escape goes back one screen: summary to list, then list to the main menu.
+- Arrow keys move through the grid in all four directions and stop at the edges without wrapping. Down from the bottom row reaches CANCEL, and Up from CANCEL returns to the card above it.
+- Enter or a click selects. Escape or CANCEL goes back one screen: summary to grid, then grid to the main menu.
 - The summary screen has an options list (only BACK for now), so SWITCH can be added when switching is built.
 - The lineup is in `src/data/party.js`, which the RUN page can reuse later:
   - PORYGON: ClearSign, legal contract simplifier web app
