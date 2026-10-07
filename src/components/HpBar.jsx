@@ -6,7 +6,7 @@ function hpColor(percent) {
   return 'low'
 }
 
-export default function HpBar({ pokemon }) {
+export default function HpBar({ pokemon, showNumbers = false }) {
   const percent = getHpPercent(pokemon.hp, pokemon.maxHp)
 
   return (
@@ -22,6 +22,11 @@ export default function HpBar({ pokemon }) {
       <div className="hp__track">
         <div className={`hp__fill hp__fill--${hpColor(percent)}`} style={{ width: `${percent}%` }} />
       </div>
+      {showNumbers && (
+        <span className="hp__numbers">
+          {pokemon.hp}/{pokemon.maxHp}
+        </span>
+      )}
     </div>
   )
 }
