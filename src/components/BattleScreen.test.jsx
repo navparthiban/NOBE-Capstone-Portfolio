@@ -92,11 +92,11 @@ describe('BattleScreen menus', () => {
     expect(screen.getByRole('button', { name: 'RUN' })).toHaveFocus()
   })
 
-  it('keeps placeholder messages for BAG', () => {
+  it('keeps placeholder messages for RUN', () => {
     render(<BattleScreen />)
     skipIntro()
-    clickOption('BAG')
-    expect(status()).toHaveTextContent('Navin wants to BAG!')
+    clickOption('RUN')
+    expect(status()).toHaveTextContent('Navin wants to RUN!')
   })
 
   it('opens the move menu with FIGHT and goes back with Escape', () => {

@@ -1,3 +1,4 @@
+import { bagItems } from '../data/bag.js'
 import { moves } from '../data/moves.js'
 import { party } from '../data/party.js'
 import { recruiterTeam } from '../data/pokemon.js'
@@ -9,6 +10,7 @@ const MAIN_OPTIONS = ['FIGHT', 'BAG', 'PARTY', 'RUN']
 export function getMenuOptions(menu = 'main') {
   if (menu === 'fight') return [...moves.map((move) => move.name), 'BACK']
   if (menu === 'party') return [...party.map((pokemon) => pokemon.name), 'CANCEL']
+  if (menu === 'bag') return [...bagItems.map((item) => item.name), 'CANCEL']
   if (menu === 'summary') return ['BACK']
   if (menu === 'victory') return ['REMATCH']
   return MAIN_OPTIONS
@@ -18,7 +20,7 @@ export const PARTY_COLUMNS = 2
 
 function getGrid(menu, columns) {
   if (menu === 'party') return { columns: columns ?? PARTY_COLUMNS, rightAlignLast: true }
-  if (menu === 'summary') return { columns: 1, rightAlignLast: false }
+  if (menu === 'summary' || menu === 'bag') return { columns: 1, rightAlignLast: false }
   return { columns: MENU_COLUMNS, rightAlignLast: false }
 }
 
@@ -121,6 +123,7 @@ function goBack(state) {
   if (state.menu === 'fight') return { ...state, menu: 'main', cursor: 0 }
   if (state.menu === 'party') return { ...state, menu: 'main', cursor: MAIN_OPTIONS.indexOf('PARTY') }
   if (state.menu === 'summary') return { ...state, menu: 'party', cursor: state.selected }
+  if (state.menu === 'bag') return { ...state, menu: 'main', cursor: MAIN_OPTIONS.indexOf('BAG') }
   return state
 }
 
@@ -132,7 +135,9 @@ function selectOption(state, index) {
   if (option === 'BACK' || option === 'CANCEL') return goBack(state)
   if (state.menu === 'fight') return takeTurn(state, index)
   if (state.menu === 'party') return { ...state, menu: 'summary', selected: index, cursor: 0 }
+  if (state.menu === 'bag') return { ...state, cursor: index }
   if (option === 'FIGHT') return { ...state, menu: 'fight', cursor: 0 }
+  if (option === 'BAG') return { ...state, menu: 'bag', cursor: 0 }
   if (option === 'PARTY') return { ...state, menu: 'party', cursor: 0 }
   return { ...state, cursor: index, queue: [{ text: getSelectionMessage(option) }] }
 }
