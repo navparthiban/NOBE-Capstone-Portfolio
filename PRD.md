@@ -76,3 +76,5 @@ Next:
 - Screen-reader behavior of the pixel-style UI is untested
 - Winning only shows a victory message and REMATCH; the badge screen is not built yet
 - Move damage and Pokémon names are placeholders
+- The PARTY descriptions still need to be rewritten in Navin's own words
+- Reported by Navin: on phones held sideways, the party screen falls back to a single column. Not reproduced in an emulated 844×390 sideways phone (two columns there), so the cause is unknown
