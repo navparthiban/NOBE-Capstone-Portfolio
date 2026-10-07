@@ -34,7 +34,13 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 
 ## Party
 - PARTY opens a DS-style grid of Navin's six Pokémon, two per row. Each card shows a sprite box, name, level, HP bar, and HP numbers like 60/60. A text box along the bottom says "Choose a Pokémon.", with a CANCEL button at the bottom right.
-- The selected card is highlighted with a blue border and background. On narrow phone screens the grid becomes a single column.
+- The selected card is highlighted with a blue border and background. When a phone is held upright, the grid becomes a single column.
+
+## Game frame
+- The whole game sits in one frame with a fixed aspect ratio, centered in the browser both ways: 4:3 on desktops, tablets, and phones held sideways, and 3:4 on phones held upright, where it uses the full width.
+- The frame scales up to fill as much of the window as possible and resizes with it.
+- Every screen (battle, move menu, party, summary) fills the same frame, so nothing changes size when switching screens.
+- The pixel font stays crisp: its size is always a multiple of 8 device pixels, and nothing is blurred by CSS scaling.
 - Selecting a Pokémon opens its summary: experience, type label, role, dates, and a short description. Any optional field that is missing is left out.
 - Arrow keys move through the grid in all four directions and stop at the edges without wrapping. Down from the bottom row reaches CANCEL, and Up from CANCEL returns to the card above it.
 - Enter or a click selects. Escape or CANCEL goes back one screen: summary to grid, then grid to the main menu.

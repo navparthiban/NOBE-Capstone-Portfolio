@@ -4,16 +4,19 @@
 ```
 src/
   main.jsx             entry point, mounts App
-  App.jsx              renders BattleScreen
+  App.jsx              renders BattleScreen inside the GameFrame
   index.css            global reset, page background, pixel font
   logic/               plain JS functions, no React
     battle.js          battle and menu state, and the rules (see below)
     battle.test.js
+    frame.js           works out the game frame's size and font size
+    frame.test.js
   hooks/
     useTypewriter.js   reveals message text one character at a time
     useMenuFocus.js    keeps browser focus on the button at the cursor
-    useMediaQuery.js   tells a component whether a CSS media query (like a narrow screen) matches
+    useFrame.js        the frame's orientation (landscape or portrait), shared with the screens
   components/          React components
+    GameFrame.jsx      the fixed-ratio frame, centered and scaled to the window
     BattleScreen.jsx   runs the battle reducer and decides which screen to show
     BattleScreen.css   all styling
     BattleMenu.jsx     the menu buttons (main, move, or rematch)
@@ -23,7 +26,7 @@ src/
     Sprite.jsx         sprite image or placeholder box
     PartyScreen.jsx    the party grid, with the "Choose a Pokémon." text box and CANCEL
     PartySummary.jsx   one Pokémon's summary
-    BattleScreen.test.jsx, PartySummary.test.jsx
+    BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx
   data/
     moves.js           Navin's four moves: name, damage, message
     party.js           Navin's six Pokémon (projects and experiences)
@@ -73,7 +76,19 @@ key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state ->
 ## How the party grid cursor works
 - The six cards are cursor positions 0 to 5 in a 2-column grid, and CANCEL is position 6. CANCEL is drawn at the bottom right, so `moveCursor` takes an optional `rightAlignLast` flag that treats the last option as sitting in the last column. With the flag off, which is how the main and move menus use it, nothing changes.
 - With the flag on: arrows move between neighboring cards, Down from either bottom card lands on CANCEL, Up from CANCEL goes to the bottom-right card, and every other move at an edge leaves the cursor where it is.
-- On narrow screens (30rem and under) the cards stack in one column. The cursor has to match what is drawn, or Down would skip a card, so `BattleScreen` uses `useMediaQuery` with the same 30rem breakpoint as the CSS and sends the column count (1 or 2) with each arrow-key action. The reducer uses it for the party grid only.
+- When the frame is portrait (a phone held upright) the cards stack in one column. The cursor has to match what is drawn, or Down would skip a card, so `BattleScreen` reads the orientation from `useFrame` and sends the column count (1 or 2) with each arrow-key action. The reducer uses it for the party grid only.
+
+## The game frame
+Everything the visitor sees sits inside one frame with a fixed aspect ratio, centered in the window, so every screen is the same size.
+
+- `computeFrame` in `src/logic/frame.js` is a plain function. Given the window size and device pixel ratio, it returns the frame's width and height, its orientation, and a font size.
+  - Landscape (wider than tall) is a 4:3 frame, and portrait is 3:4. The frame is as large as fits, so on a phone held upright it uses the full width.
+  - The size is rounded to whole device pixels, so the edges stay sharp.
+  - The font size is the largest multiple of 8 device pixels that lets the layout (40 characters across in landscape, 30 in portrait) fit. Press Start 2P is drawn on an 8-pixel grid, so those sizes render without blur.
+- `GameFrame` listens for window resizes, calls `computeFrame`, and centers a frame of exactly that size with that font size. It gives the orientation to the screens through `FrameContext` (`useFrame`). `App.jsx` wraps `BattleScreen` in it.
+- Nothing is scaled with CSS `transform` or viewport units, because those blur pixel fonts. The frame really is that size, and the text really is that size.
+- In `BattleScreen.css` every size is in `em`, so the whole layout scales with the frame's font size. Every screen fills the frame: the battle field takes the leftover height above the text box, the party grid shares the height evenly, and the summary pins BACK to the bottom. The portrait layout is chosen by the frame's `data-orientation`, not by a media query.
+- The battle sprites are sized with container query units, as the smaller of a height-based and a width-based limit, so they fit whatever shape the field is.
 
 ## Adding SWITCH later
 The summary screen builds its buttons from `getMenuOptions('summary')`, which is `['BACK']` today. To add switching, put `'SWITCH'` in that list, handle it in `selectOption` in `battle.js` by changing `lead`, and nothing in the components has to change.
