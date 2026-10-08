@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react'
-
-function prefersReducedMotion() {
-  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-}
+import prefersReducedMotion from './reducedMotion.js'
 
 export default function useTypewriter(text, speed = 25) {
   const [progress, setProgress] = useState({ text, count: 0 })

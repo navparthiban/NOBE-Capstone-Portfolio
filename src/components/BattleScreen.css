@@ -789,6 +789,70 @@
   gap: 0;
 }
 
+/* Battle transition */
+.transition {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: transparent;
+}
+
+.transition__layers,
+.transition__flash {
+  position: absolute;
+  inset: 0;
+}
+
+.transition__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--index) * 100% / var(--bars));
+  height: calc(100% / var(--bars) + 1px);
+  background: #000;
+  transform: translateX(-100%);
+  animation: bar-in calc(var(--duration) * 0.4) steps(8, end) forwards;
+  animation-delay: calc(var(--index) * var(--duration) * 0.07);
+}
+
+.transition__bar:nth-child(even) {
+  transform: translateX(100%);
+}
+
+.transition__flash {
+  background: #fff;
+  opacity: 0;
+  animation: flash calc(var(--duration) * 0.25) steps(2, end) calc(var(--duration) * 0.75) forwards;
+}
+
+.transition[data-kind='fade'] .transition__flash {
+  background: #000;
+  animation: fade-black var(--duration) ease-in forwards;
+}
+
+@keyframes bar-in {
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  40%,
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-black {
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .text-box__more,
   .sprite__body,

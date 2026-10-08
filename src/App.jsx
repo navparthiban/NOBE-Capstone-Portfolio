@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import BattleScreen from './components/BattleScreen.jsx'
+import BattleTransition from './components/BattleTransition.jsx'
 import GameFrame from './components/GameFrame.jsx'
 import IntroScreen from './components/IntroScreen.jsx'
 import PortfolioPage from './components/PortfolioPage.jsx'
@@ -7,7 +8,7 @@ import useView from './hooks/useView.js'
 
 export default function App() {
   const { view, openPortfolio, closePortfolio } = useView()
-  const [introDone, setIntroDone] = useState(false)
+  const [phase, setPhase] = useState('intro')
   const [won, setWon] = useState(false)
   const [battleKey, setBattleKey] = useState(0)
   const [started, setStarted] = useState(view === 'game')
@@ -18,7 +19,9 @@ export default function App() {
 
   useEffect(() => {
     if (inGame) stage.current?.querySelector('.text-box__button, [tabindex="0"]')?.focus()
-  }, [inGame])
+  }, [inGame, phase])
+
+  const startBattle = useCallback(() => setPhase('battle'), [])
 
   function openWonPortfolio() {
     setWon(true)
@@ -37,11 +40,9 @@ export default function App() {
     <>
       {started && (
         <GameFrame away={!inGame} stageRef={stage}>
-          {introDone ? (
-            <BattleScreen key={battleKey} onRun={openPortfolio} onWin={openWonPortfolio} />
-          ) : (
-            <IntroScreen active={inGame} onDone={() => setIntroDone(true)} />
-          )}
+          {phase === 'intro' && <IntroScreen active={inGame} onDone={() => setPhase('transition')} />}
+          {phase === 'transition' && <BattleTransition onDone={startBattle} />}
+          {phase === 'battle' && <BattleScreen key={battleKey} onRun={openPortfolio} onWin={openWonPortfolio} />}
         </GameFrame>
       )}
       {!inGame && <PortfolioPage onBack={leavePortfolio} backLabel={won ? 'Play again' : 'Back to the game'} />}
