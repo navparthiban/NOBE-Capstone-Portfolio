@@ -257,7 +257,7 @@
 
 .panel {
   display: grid;
-  grid-template-columns: 1fr 20em;
+  grid-template-columns: 1fr 22em;
   height: 10.5em;
   background: var(--panel);
   border: 0.25em solid var(--border);
