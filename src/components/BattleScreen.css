@@ -68,6 +68,13 @@
   right: 8%;
 }
 
+.sprite--professor {
+  top: 50%;
+  left: 50%;
+  width: min(60cqh, 36cqw);
+  translate: -50% -50%;
+}
+
 .sprite--player {
   bottom: 6%;
   left: 8%;
@@ -367,6 +374,29 @@
 .menu__cursor {
   display: inline-block;
   width: 1em;
+}
+
+/* Intro */
+.intro__skip {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  padding: 0.25em 0.75em;
+  background: var(--panel);
+  border: 0.25em solid var(--border);
+  border-radius: 0;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.intro__skip:hover {
+  border-color: var(--focus);
+}
+
+.intro__skip:focus-visible {
+  outline: 0.25em solid var(--focus);
+  outline-offset: 0.125em;
 }
 
 /* Party */

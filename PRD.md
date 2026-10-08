@@ -8,7 +8,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - PARTY: six Pokémon, each a project or experience, with a grid and a summary screen. Built
 - Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements. Built
 - BAG: resume and links. Built
-- Intro where the Professor asks the visitor's name, then a transition into the battle
+- Intro where the Professor introduces the site and how to play. Built, with no transition into the battle yet
 - Badge screen on winning, with contact info
 - RUN: a plain, separate portfolio page, designed after the game is done
 
@@ -49,6 +49,13 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - Fainted Pokémon show 0 HP and are greyed out in the party. SWITCH on one, forced or not, shows "PORYGON has no energy left!" and changes nothing.
 - A Pokémon can also faint right after a voluntary switch, if the attack that follows is enough to knock it out. That forces another switch.
 - The last Pokémon able to fight never faints (it stays at 1 HP), so the visitor can't run out of Pokémon and the win stays guaranteed.
+
+## Intro
+- The site opens on a Professor intro, then goes straight into the battle with no transition. The trainer is always NAVIN, so the visitor is not asked for a name.
+- The screen is a placeholder box for the Professor above the same typewriter text box the battle uses, in the same scaled frame. The Professor says 12 lines, one at a time. Enter or a click finishes a line that is still typing, and Enter or a click on a finished line goes to the next one. After "Good luck!" the battle starts.
+- SKIP, in the top-right corner, and the Escape key both jump straight to the battle from any line.
+- The lines are in `src/data/intro.js`, so they are easy to edit. A line must be at most 100 characters (a test checks this). That fits the text box in both orientations, even on a small phone. A longer line should be split into two entries.
+- The Professor's image is the `sprite` field in the same file. It is `null` for now, which shows a placeholder box.
 
 ## Battle start
 - The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. REMATCH replays this intro.
@@ -99,7 +106,7 @@ Next:
 1. PARTY summaries (done)
 2. BAG (done)
 3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements (done)
-4. Intro with the Professor asking the visitor's name, the battle transition, and the badge screen
+4. Intro with the Professor (done), then the battle transition and the badge screen
 5. RUN as a plain, separate portfolio page, designed after the game is done
 
 ## Known gaps
@@ -109,9 +116,10 @@ Next:
 - Pixel art and sprites not chosen
 - A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
 - While the small menu is open on the party screen, it covers part of the bottom-right card
-- Intro and badge screens are planned for step 4 and not built yet
+- The intro goes straight into the battle with no transition, and the Professor is a placeholder box
 - Screen-reader behavior of the pixel-style UI is untested
 - Winning only shows a victory message and REMATCH; the badge screen is not built yet
+- The intro text is a first draft for Navin to edit, and it plays again on every page load
 - Move damage and Pokémon names are placeholders
 - The PARTY descriptions still need to be rewritten in Navin's own words
 - Reported by Navin: on phones held sideways, the party screen falls back to a single column. Not reproduced in an emulated 844×390 sideways phone (two columns there), so the cause is unknown

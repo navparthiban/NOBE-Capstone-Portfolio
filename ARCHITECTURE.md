@@ -4,13 +4,15 @@
 ```
 src/
   main.jsx             entry point, mounts App
-  App.jsx              renders BattleScreen inside the GameFrame
+  App.jsx              shows the intro first, then the battle, inside the GameFrame
   index.css            global reset, page background, pixel font
   logic/               plain JS functions, no React
     battle.js          battle and menu state, and the rules (see below)
     battle.test.js
     frame.js           works out the game frame's size and font size
     frame.test.js
+    intro.js           the intro's steps: advance, skip, and when it is done
+    intro.test.js
   hooks/
     useTypewriter.js   reveals message text one character at a time
     useMenuFocus.js    keeps browser focus on the button at the cursor
@@ -28,10 +30,13 @@ src/
     PartyScreen.jsx    the party grid, the small SWITCH / SUMMARY / CANCEL menu, and the text box with CANCEL
     PartySummary.jsx   one Pokémon's summary
     BagScreen.jsx      the bag: item links, description text box, and CANCEL
-    BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx, BagScreen.test.jsx
+    IntroScreen.jsx    the Professor intro, with the typewriter text box, SKIP, and Escape
+    BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx, BagScreen.test.jsx, IntroScreen.test.jsx
+    ../App.test.jsx    the intro to battle hand-off
   data/
     bag.js             the bag items (resume, GitHub, LinkedIn, email): name, description, link
     bag.test.js
+    intro.js           the Professor and the lines of dialogue
     moves.js           Navin's four moves: name, damage, message
     party.js           Navin's six Pokémon (projects and experiences)
     pokemon.js         the Recruiter's team of three
@@ -93,6 +98,13 @@ key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state ->
 - When RESUME changes between a link and a button, the element is replaced, so `useMenuFocus` takes an extra value to re-focus the cursor's item. Without it, keyboard focus would be lost.
 - `PartyScreen` and `BagScreen` share the `screen__footer` and `screen__cancel` styles for the text box with CANCEL along the bottom.
 
+## How the intro works
+- `App.jsx` keeps one flag, `introDone`. It shows `IntroScreen` until that screen calls `onDone`, then `BattleScreen`. The battle code does not know the intro exists, and the battle is not touched by it. The trainer is always NAVIN (the battle messages already say "Navin"), so no name is stored.
+- `src/logic/intro.js` holds the rules as plain functions. The state is `{ index, count, done }`. `introReducer(state, action)` takes `advance` (next line, and done after the last one) or `skip` (done from any line). Once done, it stays done. `getIntroLine(state, lines)` gives the line to show, and `MAX_LINE_LENGTH` is the longest line allowed.
+- `IntroScreen` keeps that state with `useState` and runs every action through `introReducer`. When the result is done, it calls `onDone()`. It reuses `TextBox` (typewriter, Enter or click finishes a line that is still typing, focus on the button) and `Sprite` with no image for the Professor, inside the same `.field` and `.panel` styles as the battle, so it fits the same frame.
+- SKIP is a normal button in the corner (`.intro__skip`, placed after the text box so Tab goes to it next). Escape is a listener on `window`, added in an effect and removed when the intro goes away, so it works wherever the focus is and can never reach the battle. The SKIP button has `aria-keyshortcuts="Escape"`.
+- With reduced motion on, the typewriter already shows each full line at once.
+
 ## The game frame
 Everything the visitor sees sits inside one frame with a fixed aspect ratio, centered in the window, so every screen is the same size.
 
@@ -134,6 +146,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 ## Editing content
 - Change move names, damage, or messages in `src/data/moves.js`. The move menu is two columns in a fixed-width box (`grid-template-columns` on `.panel` in `BattleScreen.css`, 22em), sized so that "TypeScript" fits on one line. If you add a longer move name, widen that column a little or the name will break across two lines.
 - Change the party (names, levels, HP, experience, type, role, dates, description) in `src/data/party.js`. `type`, `role`, `dates`, and `description` are optional, and the summary leaves out whichever are missing. The RUN page can import this same file later.
+- Change what the Professor says in `src/data/intro.js`, one string per message. Keep each line to 100 characters or fewer; the data test fails otherwise. The text box fits at least about 6 lines of 24 characters even on a small phone, so a 100-character line always fits, and a longer one should be split into two entries. To use a real image for the Professor, import it there and set `professor.sprite`.
 - Change the bag items, links, and descriptions in `src/data/bag.js`. The resume is the file `public/resume.pdf`.
 - Change the Recruiter's Pokémon and attacks in `src/data/pokemon.js`.
 - To add real sprites, put the images in `src/assets/sprites/`, import them in the data file, and set each Pokémon's `sprite`.
@@ -146,4 +159,5 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - `BagScreen.test.jsx` stubs `fetch` and checks each link, the new-tab attributes, the descriptions, copying the email address (including when the clipboard is refused or missing), and the resume cases: found, 404, a non-PDF answer, and a failed request.
 - The switching tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover the messages and their order, the Recruiter's attack after a switch, each Pokémon keeping its own HP, switching to the Pokémon already in battle, switching after victory, rematch, and the Recruiter's replacement not appearing before its message.
 - The fainting tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover fainting and its messages, the faint applying only with its message, the party opening by itself and refusing Escape, CANCEL and fainted Pokémon, a forced switch with no recall or attack, the last Pokémon able to fight staying at 1 HP, a full battle that still ends in victory, and rematch. In the logic tests, the `recover` helper plays through a forced switch so long battles can run to the end.
+- `intro.test.js` checks the intro rules (advance, skip from every line, done stays done, no lines) and the dialogue data (12 lines, no stray spaces, none over `MAX_LINE_LENGTH`). `IntroScreen.test.jsx` and `App.test.jsx` check the screen: clicking through every line ends on the battle, SKIP and Escape from every line, Enter while a line is still typing finishing the line instead of skipping ahead, and the Escape listener being gone after the intro.
 - `PartySummary.test.jsx` checks that a Pokémon with missing optional fields still renders.
