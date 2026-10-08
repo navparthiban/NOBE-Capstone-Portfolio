@@ -4,6 +4,7 @@ import App from './App.jsx'
 import { introLines } from './data/intro.js'
 import { party } from './data/party.js'
 import { recruiterTeam } from './data/pokemon.js'
+import { TRANSITION } from './logic/transition.js'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -28,7 +29,9 @@ function nextMessage() {
 }
 
 const status = () => screen.getByRole('status')
-const inBattle = () => screen.queryByRole('button', { name: 'SKIP' }) === null
+const transition = () => document.querySelector('.transition')
+const inBattle = () => screen.queryByRole('button', { name: 'SKIP' }) === null && !transition()
+const finishTransition = (kind = 'bars') => tick(TRANSITION[kind].duration)
 
 describe('App', () => {
   it('opens on the Professor intro, not the battle', () => {
@@ -43,24 +46,37 @@ describe('App', () => {
     for (let line = 0; line < introLines.length; line++) {
       expect(status()).toHaveTextContent(introLines[line])
       expect(inBattle()).toBe(false)
-      nextMessage()
+      if (line < introLines.length - 1) nextMessage()
     }
+    tick(4000)
+    fireEvent.click(screen.getByRole('button', { name: 'Next message' }))
+    expect(transition()).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'FIGHT' })).not.toBeInTheDocument()
+    finishTransition()
+    expect(transition()).not.toBeInTheDocument()
     expect(inBattle()).toBe(true)
+    tick(2000)
     expect(status()).toHaveTextContent('A Recruiter wants to battle!')
   })
 
-  it('goes straight to the battle with SKIP', () => {
+  it('plays the transition and then the challenge message after SKIP', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+    expect(transition()).toBeInTheDocument()
+    expect(transition().dataset.kind).toBe('bars')
+    finishTransition()
+    tick(2000)
     expect(inBattle()).toBe(true)
     expect(status()).toHaveTextContent('A Recruiter wants to battle!')
   })
 
-  it('goes straight to the battle with Escape', () => {
+  it('plays the transition after Escape', () => {
     render(<App />)
     nextMessage()
     fireEvent.keyDown(window, { key: 'Escape' })
-    expect(inBattle()).toBe(true)
+    expect(transition()).toBeInTheDocument()
+    finishTransition()
+    tick(2000)
     expect(status()).toHaveTextContent('A Recruiter wants to battle!')
   })
 
@@ -69,12 +85,16 @@ describe('App', () => {
     for (let line = 0; line < introLines.length - 1; line++) nextMessage()
     expect(status()).toHaveTextContent('Good luck!')
     fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+    expect(transition()).toBeInTheDocument()
+    finishTransition()
+    tick(2000)
     expect(status()).toHaveTextContent('A Recruiter wants to battle!')
   })
 
   it('plays the battle normally after the intro, and Escape in the battle is harmless', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+    finishTransition()
     nextMessage()
     nextMessage()
     nextMessage()
@@ -88,6 +108,7 @@ describe('App', () => {
 
 function startBattle() {
   fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+  finishTransition()
   nextMessage()
   nextMessage()
   nextMessage()
@@ -365,5 +386,70 @@ describe('App after winning', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to the game' }))
     tick(100)
     expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute('aria-valuenow', '20')
+  })
+})
+
+describe('App battle transition', () => {
+  it('ignores keys and clicks while it plays, and the battle starts from its first letter after', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+    tick(500)
+    for (const key of ['Enter', ' ', 'Escape', 'ArrowDown', 'ArrowRight']) {
+      fireEvent.keyDown(window, { key })
+      fireEvent.keyDown(document.body, { key })
+    }
+    fireEvent.click(document.body)
+    fireEvent.click(transition())
+    expect(transition()).toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    tick(TRANSITION.bars.duration - 500)
+    expect(transition()).not.toBeInTheDocument()
+    expect(document.querySelector('.text-box__body').textContent.replace('▼', '').length).toBeLessThan('A Recruiter wants to battle!'.length)
+    tick(2000)
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+    expect(status()).not.toHaveTextContent('sent out')
+  })
+
+  it('does not play again for Play again', () => {
+    render(<App />)
+    startBattle()
+    winBattle()
+    fireEvent.click(continueButton())
+    fireEvent.click(playAgain())
+    expect(transition()).not.toBeInTheDocument()
+    tick(2000)
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+  })
+
+  it('does not play again for Back to the game', () => {
+    render(<App />)
+    startBattle()
+    clickOption('RUN')
+    nextMessage()
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the game' }))
+    expect(transition()).not.toBeInTheDocument()
+    expect(hasMenu()).toBe(true)
+  })
+
+  it('does not play when the portfolio is opened and closed during the intro', () => {
+    render(<App />)
+    nextMessage()
+    goToHash('#portfolio')
+    goToHash('')
+    expect(transition()).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'SKIP' })).toBeInTheDocument()
+  })
+
+  it('uses a short fade with no bars when reduced motion is on', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }))
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+    expect(transition().dataset.kind).toBe('fade')
+    expect(document.querySelectorAll('.transition__bar')).toHaveLength(0)
+    tick(TRANSITION.fade.duration - 50)
+    expect(transition()).toBeInTheDocument()
+    tick(100)
+    expect(transition()).not.toBeInTheDocument()
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
   })
 })
