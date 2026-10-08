@@ -96,10 +96,11 @@ describe('PortfolioPage content', () => {
     }
   })
 
-  it('writes the email address out so it can be read even without a mail app', async () => {
+  it('writes the email address out once, in its description, so it can be read without a mail app', async () => {
     stubFetch(pdf)
     await renderPage()
-    expect(screen.getByText('navparthiban@gmail.com')).toBeInTheDocument()
+    expect(screen.getAllByText(/navparthiban@gmail.com/)).toHaveLength(1)
+    expect(screen.getByText(/Send Navin an email: navparthiban@gmail.com/)).toBeInTheDocument()
   })
 })
 

@@ -169,7 +169,6 @@ span.portfolio__link-name {
   color: var(--hp-track);
 }
 
-.portfolio__address {
+.portfolio__link-item p {
   overflow-wrap: anywhere;
-  font-weight: 700;
 }
