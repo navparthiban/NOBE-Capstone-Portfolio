@@ -132,7 +132,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - With reduced motion on, a media query turns the animations off and hides the ball, so the sprite just swaps. Logic tests check `fx` and the order of changes, because jsdom does not run CSS animations. The animation timing itself was checked in a real browser.
 
 ## Editing content
-- Change move names, damage, or messages in `src/data/moves.js`.
+- Change move names, damage, or messages in `src/data/moves.js`. The move menu is two columns in a fixed-width box (`grid-template-columns` on `.panel` in `BattleScreen.css`, 22em), sized so that "TypeScript" fits on one line. If you add a longer move name, widen that column a little or the name will break across two lines.
 - Change the party (names, levels, HP, experience, type, role, dates, description) in `src/data/party.js`. `type`, `role`, `dates`, and `description` are optional, and the summary leaves out whichever are missing. The RUN page can import this same file later.
 - Change the bag items, links, and descriptions in `src/data/bag.js`. The resume is the file `public/resume.pdf`.
 - Change the Recruiter's Pokémon and attacks in `src/data/pokemon.js`.
