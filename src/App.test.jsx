@@ -2,6 +2,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App.jsx'
 import { introLines } from './data/intro.js'
+import { party } from './data/party.js'
+import { recruiterTeam } from './data/pokemon.js'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -258,5 +260,110 @@ describe('App hash URL', () => {
     goToHash('')
     expect(screen.getByRole('button', { name: 'SKIP' })).toBeInTheDocument()
     expect(status()).toHaveTextContent(introLines[1])
+  })
+})
+
+const continueButton = () => screen.queryByRole('button', { name: 'CONTINUE' })
+const playAgain = () => screen.queryByRole('button', { name: 'Play again' })
+
+function chooseFirstHealthy() {
+  fireEvent.click(screen.getAllByRole('button', { name: /, level \d+, [1-9]\d* of/ })[0])
+  clickOption('SWITCH')
+}
+
+function winBattle() {
+  for (let turn = 0; turn < 40 && !continueButton(); turn++) {
+    clickOption('FIGHT')
+    clickOption('React')
+    while (!hasMenu() && !continueButton()) {
+      if (screen.queryByRole('region', { name: 'Party' })) chooseFirstHealthy()
+      else nextMessage()
+    }
+  }
+}
+
+describe('App after winning', () => {
+  it('opens the plain portfolio from CONTINUE, with a Play again button', () => {
+    render(<App />)
+    startBattle()
+    winBattle()
+    expect(portfolioHeading()).not.toBeInTheDocument()
+    fireEvent.click(continueButton())
+    expect(portfolioHeading()).toBeInTheDocument()
+    expect(window.location.hash).toBe('#portfolio')
+    expect(playAgain()).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Back to the game' })).not.toBeInTheDocument()
+  })
+
+  it('restarts the battle without the intro, with every Pokémon and the Recruiter reset', () => {
+    render(<App />)
+    startBattle()
+    winBattle()
+    fireEvent.click(continueButton())
+    fireEvent.click(playAgain())
+    tick(100)
+    expect(portfolioHeading()).not.toBeInTheDocument()
+    expect(window.location.hash).toBe('')
+    expect(screen.queryByRole('button', { name: 'SKIP' })).not.toBeInTheDocument()
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    nextMessage()
+    nextMessage()
+    nextMessage()
+    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute('aria-valuenow', String(recruiterTeam[0].maxHp))
+    expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute('aria-valuenow', String(party[0].maxHp))
+    clickOption('PARTY')
+    for (const pokemon of party) {
+      expect(screen.getByRole('button', { name: new RegExp(`^${pokemon.name}, level \\d+, ${pokemon.maxHp} of ${pokemon.maxHp}`) })).toBeInTheDocument()
+    }
+  })
+
+  it('keeps Play again as Back to the game only after winning, and resets after it is used', () => {
+    render(<App />)
+    startBattle()
+    winBattle()
+    fireEvent.click(continueButton())
+    fireEvent.click(playAgain())
+    tick(100)
+    nextMessage()
+    nextMessage()
+    nextMessage()
+    clickOption('RUN')
+    nextMessage()
+    expect(screen.getByRole('button', { name: 'Back to the game' })).toBeInTheDocument()
+    expect(playAgain()).not.toBeInTheDocument()
+  })
+
+  it('shows the badge screen again if the browser Back button is used from the portfolio', () => {
+    render(<App />)
+    startBattle()
+    winBattle()
+    fireEvent.click(continueButton())
+    goToHash('')
+    expect(portfolioHeading()).not.toBeInTheDocument()
+    expect(continueButton()).toBeInTheDocument()
+    fireEvent.click(continueButton())
+    expect(playAgain()).toBeInTheDocument()
+  })
+
+  it('says Back to the game on a direct portfolio link, since nothing was won', () => {
+    window.history.replaceState(null, '', '/#portfolio')
+    render(<App />)
+    expect(screen.getByRole('button', { name: 'Back to the game' })).toBeInTheDocument()
+    expect(playAgain()).not.toBeInTheDocument()
+  })
+
+  it('reaching the portfolio through RUN still says Back to the game and keeps the battle', () => {
+    render(<App />)
+    startBattle()
+    clickOption('FIGHT')
+    clickOption('React')
+    while (!hasMenu()) nextMessage()
+    clickOption('RUN')
+    nextMessage()
+    expect(screen.getByRole('button', { name: 'Back to the game' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the game' }))
+    tick(100)
+    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute('aria-valuenow', '20')
   })
 })

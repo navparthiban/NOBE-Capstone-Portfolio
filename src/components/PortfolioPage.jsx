@@ -42,6 +42,7 @@ function LinkItem({ item, missing }) {
 
 export default function PortfolioPage({
   onBack,
+  backLabel = 'Back to the game',
   profile = defaultProfile,
   experiences = party,
   skills = moves,
@@ -66,7 +67,7 @@ export default function PortfolioPage({
     <div className="portfolio">
       <header className="portfolio__header">
         <button type="button" className="portfolio__back" onClick={onBack}>
-          Back to the game
+          {backLabel}
         </button>
         <h1 ref={heading} tabIndex={-1}>
           {profile.name}

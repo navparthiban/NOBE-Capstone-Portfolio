@@ -8,6 +8,8 @@ import useView from './hooks/useView.js'
 export default function App() {
   const { view, openPortfolio, closePortfolio } = useView()
   const [introDone, setIntroDone] = useState(false)
+  const [won, setWon] = useState(false)
+  const [battleKey, setBattleKey] = useState(0)
   const [started, setStarted] = useState(view === 'game')
   const stage = useRef(null)
   const inGame = view === 'game'
@@ -18,18 +20,31 @@ export default function App() {
     if (inGame) stage.current?.querySelector('.text-box__button, [tabindex="0"]')?.focus()
   }, [inGame])
 
+  function openWonPortfolio() {
+    setWon(true)
+    openPortfolio()
+  }
+
+  function leavePortfolio() {
+    if (won) {
+      setWon(false)
+      setBattleKey((key) => key + 1)
+    }
+    closePortfolio()
+  }
+
   return (
     <>
       {started && (
         <GameFrame away={!inGame} stageRef={stage}>
           {introDone ? (
-            <BattleScreen onRun={openPortfolio} />
+            <BattleScreen key={battleKey} onRun={openPortfolio} onWin={openWonPortfolio} />
           ) : (
             <IntroScreen active={inGame} onDone={() => setIntroDone(true)} />
           )}
         </GameFrame>
       )}
-      {!inGame && <PortfolioPage onBack={closePortfolio} />}
+      {!inGame && <PortfolioPage onBack={leavePortfolio} backLabel={won ? 'Play again' : 'Back to the game'} />}
     </>
   )
 }

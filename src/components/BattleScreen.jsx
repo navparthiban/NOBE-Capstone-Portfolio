@@ -1,6 +1,7 @@
 import { useReducer } from 'react'
 import { useFrame } from '../hooks/useFrame.js'
 import { PARTY_COLUMNS, battleReducer, createBattle, getLead, getPrompt } from '../logic/battle.js'
+import BadgeScreen from './BadgeScreen.jsx'
 import BagScreen from './BagScreen.jsx'
 import BattleMenu from './BattleMenu.jsx'
 import PartyScreen from './PartyScreen.jsx'
@@ -10,7 +11,7 @@ import Sprite from './Sprite.jsx'
 import TextBox from './TextBox.jsx'
 import './BattleScreen.css'
 
-export default function BattleScreen({ onRun = () => {} }) {
+export default function BattleScreen({ onRun = () => {}, onWin = () => {} }) {
   const [state, dispatch] = useReducer(battleReducer, null, createBattle)
   const hasMessages = state.queue.length > 0
   const opponent = state.team[state.active]
@@ -20,7 +21,8 @@ export default function BattleScreen({ onRun = () => {} }) {
   const opponentOut = state.fx.opponent !== 'hidden'
   const playerOut = state.fx.player !== 'hidden'
   const playerFainted = state.fx.player === 'faint'
-  const onField = !['party', 'partyMenu', 'summary', 'bag'].includes(state.menu)
+  const showBadge = state.menu === 'badge' && !hasMessages
+  const onField = state.menu === 'badge' ? hasMessages : !['party', 'partyMenu', 'summary', 'bag'].includes(state.menu)
 
   function handleKeyDown(event) {
     if (event.key === 'Escape') {
@@ -64,6 +66,7 @@ export default function BattleScreen({ onRun = () => {} }) {
         )}
         {playerOut && !playerFainted && <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />}
       </section>
+      {showBadge && <BadgeScreen onContinue={onWin} />}
       {(state.menu === 'party' || state.menu === 'partyMenu') && (
         <PartyScreen
           party={state.party}

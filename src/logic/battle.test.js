@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { badge, badgeLines } from '../data/badge.js'
 import { party } from '../data/party.js'
 import {
   battleReducer,
@@ -57,7 +58,7 @@ function play(state, moveIndex) {
 
 function playUntilVictory(state, moveIndex) {
   let current = state
-  for (let turn = 0; turn < 50 && current.menu !== 'victory'; turn++) {
+  for (let turn = 0; turn < 50 && current.menu !== 'badge'; turn++) {
     current = play(current, moveIndex)
   }
   return current
@@ -80,8 +81,8 @@ describe('getMenuOptions', () => {
     expect(getMenuOptions('summary')).toEqual(['BACK'])
   })
 
-  it('returns only REMATCH after victory', () => {
-    expect(getMenuOptions('victory')).toEqual(['REMATCH'])
+  it('returns only CONTINUE for the badge screen', () => {
+    expect(getMenuOptions('badge')).toEqual(['CONTINUE'])
   })
 })
 
@@ -489,12 +490,6 @@ describe('party', () => {
     expect(state.party.slice(1).every((pokemon) => pokemon.hp === pokemon.maxHp)).toBe(true)
   })
 
-  it('resets the party and selection on rematch', () => {
-    const summary = select(openParty(createBattle()), 4)
-    expect(summary.selected).toBe(4)
-    const victory = clearQueue(playUntilVictory(createBattle(), REACT))
-    expect(select(victory, 0)).toEqual(createBattle())
-  })
 })
 
 describe('switching', () => {
@@ -593,21 +588,10 @@ describe('switching', () => {
 
   it('blocks switching after victory', () => {
     const victory = clearQueue(playUntilVictory(createBattle(), REACT))
-    expect(victory.menu).toBe('victory')
+    expect(victory.menu).toBe('badge')
     const forced = { ...victory, menu: 'partyMenu', selected: ALAKAZAM }
     expect(battleReducer(forced, { type: 'select', index: 0 })).toBe(forced)
-    expect(getMenuOptions('victory')).toEqual(['REMATCH'])
-  })
-
-  it('resets all HP, the lead, and the animations on rematch', () => {
-    let state = clearQueue(switchTo(clearQueue(createBattle()), ALAKAZAM))
-    state = clearQueue(playUntilVictory(state, REACT))
-    const rematch = select(state, 0)
-    expect(rematch).toEqual(createBattle())
-    expect(rematch.lead).toBe(0)
-    expect(rematch.party.every((pokemon) => pokemon.hp === pokemon.maxHp)).toBe(true)
-    expect(rematch.fx).toEqual({ player: 'hidden', opponent: 'hidden' })
-    expect(texts(rematch)[0]).toBe('A Recruiter wants to battle!')
+    expect(getMenuOptions('badge')).toEqual(['CONTINUE'])
   })
 
   it("does not put the Recruiter's next Pokémon on the field until its send-out message", () => {
@@ -654,9 +638,9 @@ describe('takeTurn', () => {
 
   it('triggers victory after all three faint', () => {
     const state = playUntilVictory(createBattle(), REACT)
-    expect(state.menu).toBe('victory')
+    expect(state.menu).toBe('badge')
     expect(state.team.every((pokemon) => pokemon.hp === 0)).toBe(true)
-    expect(texts(state).slice(-2)).toEqual(['Recruiter has no Pokémon left!', 'Navin won the battle!'])
+    expect(texts(state).slice(-4)).toEqual(['Recruiter has no Pokémon left!', 'Navin won the battle!', ...badgeLines])
     expect(getLead(clearQueue(state)).hp).toBeGreaterThanOrEqual(1)
   })
 
@@ -860,21 +844,47 @@ describe('fainting and forced switching', () => {
 
   it('still ends in victory in a long battle that needs forced switches', () => {
     const state = playUntilVictory(createBattle(), GIT)
-    expect(state.menu).toBe('victory')
+    expect(state.menu).toBe('badge')
     expect(state.party.some((pokemon) => pokemon.hp === 0)).toBe(true)
     expect(state.party.some((pokemon) => pokemon.hp > 0)).toBe(true)
   })
-
-  it('resets the forced switch and every HP on rematch', () => {
-    const rematch = select(clearQueue(playUntilVictory(createBattle(), GIT)), 0)
-    expect(rematch).toEqual(createBattle())
-    expect(rematch.mustSwitch).toBe(false)
-  })
 })
 
-describe('rematch', () => {
-  it('restores the starting state', () => {
-    const victory = clearQueue(playUntilVictory(createBattle(), REACT))
-    expect(select(victory, 0)).toEqual(createBattle())
+describe('badge screen', () => {
+  const won = () => playUntilVictory(createBattle(), REACT)
+
+  it('queues the badge lines after the victory messages, in order', () => {
+    expect(texts(won()).slice(-3)).toEqual(['Navin won the battle!', "Impressive! You've earned this.", 'NAVIN received the PORTFOLIO BADGE!'])
+  })
+
+  it('shows the badge prompt once the messages are done', () => {
+    const state = clearQueue(won())
+    expect(state.menu).toBe('badge')
+    expect(getPrompt(state)).toBe(badge.prompt)
+  })
+
+  it('ignores Escape, arrows, and selecting on the badge screen', () => {
+    const state = clearQueue(won())
+    expect(battleReducer(state, { type: 'back' })).toBe(state)
+    expect(battleReducer(state, { type: 'cursor', key: 'ArrowDown' })).toBe(state)
+    expect(select(state, 0)).toBe(state)
+  })
+
+  it('is only reached by the final knockout', () => {
+    let state = createBattle()
+    while (state.team.filter((pokemon) => pokemon.hp === 0).length < 2) {
+      state = clearQueue(play(state, REACT))
+      expect(state.menu).not.toBe('badge')
+    }
+    expect(state.team.filter((pokemon) => pokemon.hp === 0)).toHaveLength(2)
+    expect(texts(play(state, REACT))).not.toContain(badgeLines[0])
+  })
+
+  it('cannot be reached from any menu choice', () => {
+    const main = clearQueue(createBattle())
+    for (let index = 0; index < getMenuOptions('main').length; index++) {
+      expect(clearQueue(select(main, index)).menu).not.toBe('badge')
+    }
+    expect(battleReducer(openFight(createBattle()), { type: 'back' }).menu).toBe('main')
   })
 })
