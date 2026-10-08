@@ -20,6 +20,15 @@ body {
   overflow: hidden;
 }
 
+.stage--away {
+  position: absolute;
+  width: 0;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
 .frame {
   position: relative;
   display: flex;

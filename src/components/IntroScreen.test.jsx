@@ -143,6 +143,16 @@ describe('IntroScreen Escape', () => {
     expect(status()).toHaveTextContent(introLines[0])
   })
 
+  it('ignores Escape while it is inactive, and listens again when it is active', () => {
+    const onDone = vi.fn()
+    const { rerender } = render(<IntroScreen onDone={onDone} active={false} />)
+    pressEscape()
+    expect(onDone).not.toHaveBeenCalled()
+    rerender(<IntroScreen onDone={onDone} active />)
+    pressEscape()
+    expect(onDone).toHaveBeenCalledTimes(1)
+  })
+
   it('stops listening once the intro is gone', () => {
     const { onDone, unmount } = renderAt(0)
     unmount()

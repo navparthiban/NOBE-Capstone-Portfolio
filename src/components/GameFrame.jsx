@@ -10,7 +10,7 @@ function readViewport() {
   }
 }
 
-export default function GameFrame({ children }) {
+export default function GameFrame({ children, away = false, stageRef }) {
   const [viewport, setViewport] = useState(readViewport)
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function GameFrame({ children }) {
   const { orientation, width, height, fontSize } = computeFrame(viewport)
 
   return (
-    <div className="stage">
+    <div ref={stageRef} className={away ? 'stage stage--away' : 'stage'} aria-hidden={away || undefined} inert={away}>
       <div className="frame" data-orientation={orientation} style={{ width, height, fontSize }}>
         <FrameContext.Provider value={{ orientation }}>{children}</FrameContext.Provider>
       </div>
