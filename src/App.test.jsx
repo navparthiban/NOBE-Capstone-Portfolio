@@ -230,15 +230,56 @@ describe('App hash URL', () => {
     expect(container.querySelector('.stage')).toBeNull()
   })
 
-  it('starts the game from the intro when Back to the game is used after a direct link', () => {
+  it('shows Play the game on a direct link, and clicking it starts the intro', () => {
     window.history.replaceState(null, '', '/#portfolio')
     render(<App />)
-    fireEvent.click(screen.getByRole('button', { name: 'Back to the game' }))
+    expect(screen.getByRole('button', { name: 'Play the game' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Back to the game' })).not.toBeInTheDocument()
+    expect(playAgain()).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Play the game' }))
     tick(100)
     expect(portfolioHeading()).not.toBeInTheDocument()
     expect(status()).toHaveTextContent(introLines[0])
     expect(screen.getByRole('button', { name: 'SKIP' })).toBeInTheDocument()
     expect(window.location.hash).toBe('')
+  })
+
+  it('plays the transition into the battle after Play the game and the intro', () => {
+    window.history.replaceState(null, '', '/#portfolio')
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Play the game' }))
+    fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+    expect(transition()).toBeInTheDocument()
+    finishTransition()
+    tick(2000)
+    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+  })
+
+  it('says Back to the game, not Play the game, once the game has been started from a direct link', () => {
+    window.history.replaceState(null, '', '/#portfolio')
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Play the game' }))
+    fireEvent.click(screen.getByRole('button', { name: 'SKIP' }))
+    finishTransition()
+    nextMessage()
+    nextMessage()
+    nextMessage()
+    clickOption('RUN')
+    nextMessage()
+    expect(screen.getByRole('button', { name: 'Back to the game' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Play the game' })).not.toBeInTheDocument()
+  })
+
+  it('shows Play the game after a refresh on the portfolio, even if the game was played before', () => {
+    const first = render(<App />)
+    startBattle()
+    clickOption('RUN')
+    nextMessage()
+    expect(screen.getByRole('button', { name: 'Back to the game' })).toBeInTheDocument()
+    first.unmount()
+    render(<App />)
+    expect(screen.getByRole('button', { name: 'Play the game' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Back to the game' })).not.toBeInTheDocument()
   })
 
   it('shows the game for any other hash', () => {
@@ -367,10 +408,10 @@ describe('App after winning', () => {
     expect(playAgain()).toBeInTheDocument()
   })
 
-  it('says Back to the game on a direct portfolio link, since nothing was won', () => {
+  it('says Play the game, not Play again, on a direct portfolio link', () => {
     window.history.replaceState(null, '', '/#portfolio')
     render(<App />)
-    expect(screen.getByRole('button', { name: 'Back to the game' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Play the game' })).toBeInTheDocument()
     expect(playAgain()).not.toBeInTheDocument()
   })
 

@@ -91,7 +91,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - Sections: a header (name and "CS + Chemistry at UIUC"), About, Experience (from the party data: name, role, dates, type, description, with the Pokémon's name as a small tag), Skills (the moves), and Links and resume (the bag items). Anything missing is left out. If `public/resume.pdf` is missing, RESUME shows "Resume isn't available yet." instead of a broken link.
 - The page has one main heading, a heading for each section, visible focus, and no horizontal scrolling down to 320px wide. The body text has at least 5.5:1 contrast.
 - The "Back to the game" button at the top (the first thing in the tab order) returns to the battle exactly where it was: same HP, same Pokémon out, same menu with the cursor on RUN, and no animations replaying.
-- The page has its own address, `/#portfolio`, so it can be linked from a resume. Opening that address shows the plain page with no intro. "Back to the game" from there starts the game from the intro. The browser's Back and Forward buttons work too.
+- The page has its own address, `/#portfolio`, so it can be linked from a resume. Opening that address (or refreshing on it) shows the plain page with no intro, and its top button says "Play the game". That button starts the game from the Professor intro, followed by the battle transition. The browser's Back and Forward buttons work too.
 - The About text and name are in `src/data/profile.js`.
 
 ## Badge screen
@@ -99,7 +99,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - CONTINUE (Enter or a click) opens the plain portfolio. Escape and the arrow keys do nothing on this screen.
 - It is only reached by winning: the badge screen appears only after the last Recruiter Pokémon faints.
 - When the plain portfolio is reached after winning, its top button says "Play again". It starts a brand-new battle without the Professor intro: every Pokémon at full HP, PORYGON leading, and the Recruiter's full team, beginning at "A Recruiter wants to battle!".
-- When the portfolio is reached through RUN, it still says "Back to the game" and keeps the battle exactly as it was. A direct `/#portfolio` link also says "Back to the game".
+- When the portfolio is reached through RUN, it still says "Back to the game" and keeps the battle exactly as it was. A direct `/#portfolio` link, or a refresh on the portfolio, says "Play the game" instead, because no battle exists yet.
 - The browser's Back button from the portfolio after winning returns to the badge screen, and CONTINUE goes to the portfolio again.
 - The dialogue, the badge name, and the badge image are in `src/data/badge.js`. The image is `null` for now, which shows a placeholder box.
 
@@ -145,7 +145,7 @@ Next:
 - The Professor is a placeholder box
 - Screen-reader behavior of the pixel-style UI is untested
 - The badge image and the badge text (`src/data/badge.js`) are placeholders
-- A win is not remembered across a reload, so reloading the portfolio after winning shows "Back to the game" and starts from the intro
+- A win is not remembered across a reload, so reloading the portfolio after winning shows "Play the game" and starts from the intro
 - The intro text is a first draft for Navin to edit, and it plays again on every page load
 - Move damage and Pokémon names are placeholders
 - The PARTY descriptions still need to be rewritten in Navin's own words
