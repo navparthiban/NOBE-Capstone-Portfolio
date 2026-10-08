@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FrameContext } from '../hooks/useFrame.js'
+import { badge, badgeLines } from '../data/badge.js'
 import BattleScreen from './BattleScreen.jsx'
 
 beforeEach(() => {
@@ -54,6 +55,23 @@ function playReactTurn() {
     if (partyOpen()) chooseFirstHealthy()
     else nextMessage()
   }
+}
+
+const continueButton = () => screen.queryByRole('button', { name: 'CONTINUE' })
+
+function winBattle(seen = []) {
+  for (let turn = 0; turn < 40 && !continueButton(); turn++) {
+    clickOption('FIGHT')
+    clickOption('React')
+    while (!hasMenu() && !continueButton()) {
+      if (partyOpen()) chooseFirstHealthy()
+      else {
+        seen.push(status().textContent)
+        nextMessage()
+      }
+    }
+  }
+  return seen
 }
 
 function status() {
@@ -290,25 +308,60 @@ describe('BattleScreen battle', () => {
     expect(bar('SCREENMON')).not.toBeInTheDocument()
   })
 
-  it('reaches victory and Rematch restarts the battle', () => {
+  it('plays the badge lines after the victory messages, then shows the badge screen', () => {
     render(<BattleScreen />)
     skipIntro()
-    for (let turn = 0; turn < 20 && !screen.queryByRole('button', { name: 'REMATCH' }); turn++) {
-      playReactTurn()
-    }
-    expect(screen.getByRole('button', { name: 'REMATCH' })).toHaveFocus()
-    clickOption('REMATCH')
-    expect(status()).toHaveTextContent('A Recruiter wants to battle!')
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    const seen = winBattle()
+    expect(seen.slice(-3)).toEqual(['Navin won the battle!', ...badgeLines])
+    expect(screen.getByRole('region', { name: 'Badge' })).toBeInTheDocument()
+    expect(screen.getByText(badge.name)).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: `${badge.name} image` })).toBeInTheDocument()
+    expect(status()).toHaveTextContent(badge.prompt)
+    expect(continueButton()).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'FIGHT' })).not.toBeInTheDocument()
+  })
+
+  it('calls onWin only when CONTINUE is used', () => {
+    const onWin = vi.fn()
+    render(<BattleScreen onWin={onWin} />)
     skipIntro()
-    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute(
-      'aria-valuenow',
-      '40',
-    )
-    expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute(
-      'aria-valuenow',
-      '60',
-    )
+    winBattle()
+    expect(onWin).not.toHaveBeenCalled()
+    fireEvent.click(continueButton())
+    expect(onWin).toHaveBeenCalledTimes(1)
+  })
+
+  it('does nothing on Escape or arrow keys at the badge screen', () => {
+    const onWin = vi.fn()
+    render(<BattleScreen onWin={onWin} />)
+    skipIntro()
+    winBattle()
+    for (const key of ['Escape', 'ArrowDown', 'ArrowRight', 'ArrowLeft', 'ArrowUp']) press(key)
+    expect(screen.getByRole('region', { name: 'Badge' })).toBeInTheDocument()
+    expect(continueButton()).toHaveFocus()
+    expect(onWin).not.toHaveBeenCalled()
+  })
+
+  it('does not show the badge screen before the last Recruiter Pokémon faints', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playReactTurn()
+    playReactTurn()
+    expect(screen.queryByRole('region', { name: 'Badge' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'CONTINUE' })).not.toBeInTheDocument()
+  })
+
+  it('shows the badge image from the data when there is one', () => {
+    const original = badge.image
+    badge.image = 'badge.png'
+    try {
+      render(<BattleScreen />)
+      skipIntro()
+      winBattle()
+      expect(screen.getByRole('img', { name: badge.name })).toHaveAttribute('src', 'badge.png')
+    } finally {
+      badge.image = original
+    }
   })
 })
 
@@ -757,12 +810,10 @@ describe('BattleScreen fainting', () => {
     expect(screen.queryByRole('button', { name: 'CANCEL' })).not.toBeInTheDocument()
   })
 
-  it('still reaches victory when the lead faints along the way', () => {
+  it('still reaches the badge screen when the lead faints along the way', () => {
     render(<BattleScreen />)
     skipIntro()
-    for (let turn = 0; turn < 40 && !screen.queryByRole('button', { name: 'REMATCH' }); turn++) {
-      playReactTurn()
-    }
-    expect(screen.getByRole('button', { name: 'REMATCH' })).toHaveFocus()
+    winBattle()
+    expect(continueButton()).toHaveFocus()
   })
 })

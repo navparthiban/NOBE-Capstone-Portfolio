@@ -1,3 +1,4 @@
+import { badge, badgeLines } from '../data/badge.js'
 import { bagItems } from '../data/bag.js'
 import { moves } from '../data/moves.js'
 import { party } from '../data/party.js'
@@ -13,7 +14,7 @@ export function getMenuOptions(menu = 'main') {
   if (menu === 'partyMenu') return ['SWITCH', 'SUMMARY', 'CANCEL']
   if (menu === 'bag') return [...bagItems.map((item) => item.name), 'CANCEL']
   if (menu === 'summary') return ['BACK']
-  if (menu === 'victory') return ['REMATCH']
+  if (menu === 'badge') return ['CONTINUE']
   return MAIN_OPTIONS
 }
 
@@ -59,7 +60,7 @@ export function getLead(state) {
 
 export function getPrompt(state) {
   if (state.menu === 'fight') return 'Choose a move.'
-  if (state.menu === 'victory') return 'Want to battle again?'
+  if (state.menu === 'badge') return badge.prompt
   return `What will ${getLead(state).name} do?`
 }
 
@@ -143,10 +144,11 @@ export function takeTurn(state, moveIndex) {
       { text: `${target.name} fainted!` },
       { text: 'Recruiter has no Pokémon left!' },
       { text: 'Navin won the battle!' },
+      ...badgeLines.map((text) => ({ text })),
     )
   }
 
-  const menu = hp === 0 && !hasNext ? 'victory' : 'main'
+  const menu = hp === 0 && !hasNext ? 'badge' : 'main'
   return applyChanges({ ...state, menu, cursor: 0, queue }, queue[0])
 }
 
@@ -186,7 +188,7 @@ function selectOption(state, index) {
   const option = getMenuOptions(state.menu)[index]
   if (!option) return state
 
-  if (state.menu === 'victory') return createBattle()
+  if (state.menu === 'badge') return state
   if (option === 'BACK' || option === 'CANCEL') return goBack(state)
   if (state.menu === 'fight') return takeTurn(state, index)
   if (state.menu === 'party') return { ...state, menu: 'partyMenu', selected: index, cursor: 0 }
@@ -209,6 +211,7 @@ export function battleReducer(state, action) {
 
   switch (action.type) {
     case 'cursor': {
+      if (state.menu === 'badge') return state
       const forcedParty = state.menu === 'party' && state.mustSwitch
       const count = getMenuOptions(state.menu).length - (forcedParty ? 1 : 0)
       const { columns, rightAlignLast } = getGrid(state.menu, action.columns)
