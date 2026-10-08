@@ -23,6 +23,8 @@ export default function App() {
 
   const startBattle = useCallback(() => setPhase('battle'), [])
 
+  const backLabel = won ? 'Play again' : started ? 'Back to the game' : 'Play the game'
+
   function openWonPortfolio() {
     setWon(true)
     openPortfolio()
@@ -45,7 +47,7 @@ export default function App() {
           {phase === 'battle' && <BattleScreen key={battleKey} onRun={openPortfolio} onWin={openWonPortfolio} />}
         </GameFrame>
       )}
-      {!inGame && <PortfolioPage onBack={leavePortfolio} backLabel={won ? 'Play again' : 'Back to the game'} />}
+      {!inGame && <PortfolioPage onBack={leavePortfolio} backLabel={backLabel} />}
     </>
   )
 }
