@@ -4,7 +4,7 @@
 ```
 src/
   main.jsx             entry point, mounts App
-  App.jsx              shows the intro first, then the battle, inside the GameFrame
+  App.jsx              picks the game or the plain portfolio; the game is the intro, then the battle, inside the GameFrame
   index.css            global reset, page background, pixel font
   logic/               plain JS functions, no React
     battle.js          battle and menu state, and the rules (see below)
@@ -13,11 +13,16 @@ src/
     frame.test.js
     intro.js           the intro's steps: advance, skip, and when it is done
     intro.test.js
+    route.js           which view the address asks for (game or portfolio)
+    route.test.js
+    links.js           the link attributes shared by the bag and the portfolio
+    links.test.js
   hooks/
     useTypewriter.js   reveals message text one character at a time
     useMenuFocus.js    keeps browser focus on the button at the cursor
     useFrame.js        the frame's orientation (landscape or portrait), shared with the screens
     useFileAvailable.js  checks whether a file exists on the site (used for the resume)
+    useView.js         the current view, kept in sync with the address hash, plus open and close
   components/          React components
     GameFrame.jsx      the fixed-ratio frame, centered and scaled to the window
     BattleScreen.jsx   runs the battle reducer and decides which screen to show
@@ -31,8 +36,10 @@ src/
     PartySummary.jsx   one Pokémon's summary
     BagScreen.jsx      the bag: item links, description text box, and CANCEL
     IntroScreen.jsx    the Professor intro, with the typewriter text box, SKIP, and Escape
-    BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx, BagScreen.test.jsx, IntroScreen.test.jsx
-    ../App.test.jsx    the intro to battle hand-off
+    PortfolioPage.jsx  the plain portfolio page
+    Portfolio.css      its styling (separate from the game)
+    BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx, BagScreen.test.jsx, IntroScreen.test.jsx, PortfolioPage.test.jsx
+    ../App.test.jsx    the intro to battle hand-off, RUN, and the hash URL
   data/
     bag.js             the bag items (resume, GitHub, LinkedIn, email): name, description, link
     bag.test.js
@@ -40,6 +47,7 @@ src/
     moves.js           Navin's four moves: name, damage, message
     party.js           Navin's six Pokémon (projects and experiences)
     pokemon.js         the Recruiter's team of three
+    profile.js         the portfolio's name, tagline, and About text
     party.test.js
   test/setup.js        test setup (jest-dom matchers, cleanup)
 ```
@@ -65,7 +73,7 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
 - `createBattle()` builds the starting state: everyone at full HP, three intro messages queued, and both sides off the field. `getLead(state)` returns the party Pokémon that is fighting.
 - `battleReducer(state, action)` is the one entry point for changes. It never changes the old state; it returns a new one. Actions:
   - `cursor` (arrow key): moves the cursor with `moveCursor`, which stops at the edges. The main and move menus are a 2-column grid, the party screen is a 2-column grid (or 1 column, see below), and the summary has one column.
-  - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, PARTY opens the party grid, a party Pokémon opens its small menu (SWITCH, SUMMARY, CANCEL), SWITCH calls `switchLead`, SUMMARY opens the summary, BACK or CANCEL goes back, REMATCH calls `createBattle()`. BAG opens the bag, and selecting a bag item only moves the cursor to it (the link itself is handled by the browser). RUN queues a placeholder message.
+  - `select` (Enter or click): FIGHT opens the move menu, a move calls `takeTurn`, PARTY opens the party grid, a party Pokémon opens its small menu (SWITCH, SUMMARY, CANCEL), SWITCH calls `switchLead`, SUMMARY opens the summary, BACK or CANCEL goes back, REMATCH calls `createBattle()`. BAG opens the bag, and selecting a bag item only moves the cursor to it (the link itself is handled by the browser). RUN queues "Got away safely!" with `exit: 'portfolio'` (see the plain portfolio section).
   - `back` (Escape): goes back one screen. Move menu to main, small menu to the party grid (cursor on that Pokémon), party grid to main (cursor on PARTY), bag to main (cursor on BAG), and summary to the party grid (cursor on that Pokémon). On the main menu it does nothing.
   - `advance`: removes the message on screen from the queue, then applies the changes of the next message.
 - While `queue` has messages, the reducer ignores everything except `advance`, so the visitor reads each message before acting.
@@ -105,6 +113,16 @@ key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state ->
 - SKIP is a normal button in the corner (`.intro__skip`, placed after the text box so Tab goes to it next). Escape is a listener on `window`, added in an effect and removed when the intro goes away, so it works wherever the focus is and can never reach the battle. The SKIP button has `aria-keyshortcuts="Escape"`.
 - With reduced motion on, the typewriter already shows each full line at once.
 
+## How the plain portfolio works
+- `App.jsx` asks `useView` which view to show. The address hash is the only source of truth: `getViewFromHash` in `src/logic/route.js` returns `'portfolio'` only for exactly `#portfolio`, and `'game'` for anything else. `useView` listens for `hashchange` and `popstate`, so the browser's Back and Forward buttons work with no router library.
+- RUN is a normal battle message, `{ text: RUN_MESSAGE, exit: 'portfolio' }`. The reducer stays pure. `BattleScreen.advance()` calls its `onRun` prop when the message that was just dismissed has `exit === 'portfolio'`, and `App` passes `openPortfolio`, which sets the hash. The battle state is not touched, so the menu is still on RUN when the visitor comes back.
+- **The game stays mounted while the portfolio is open.** `GameFrame` gets `away`, which gives the stage `stage--away` (zero size, `visibility: hidden`) plus `aria-hidden` and `inert`. This is the same reason as `field--away`: unmounting would reset the battle, and `display: none` would restart the Pokéball animations. `App` only mounts the game once the visitor has been in it (`started`), so opening `/#portfolio` directly never builds the intro in the background, and "Back to the game" from there starts the intro.
+- `IntroScreen` takes `active`. Its Escape listener ignores keys while the portfolio is showing, so Escape on the portfolio cannot skip an intro hidden behind it.
+- `closePortfolio` calls `history.back()` if the portfolio was opened from the game (so the history stays tidy), and otherwise replaces the address with the one without a hash. On return, `App` focuses the text box button or the option at the cursor.
+- `PortfolioPage` takes its content as props that default to the data files: `profile` (`profile.js`), `experiences` (`party.js`), `skills` (`moves.js`), and `links` (`bag.js`). While it is open it sets the page title, adds `body--light` (so the area around the page matches), scrolls to the top, and focuses the main heading, then undoes all of that when it closes.
+- Link attributes come from `getLinkProps` in `src/logic/links.js`, shared with `BagScreen`. The portfolio does not use in-page `#` links, because they would collide with the hash routing.
+- `Portfolio.css` is separate from the game styles. It uses `rem`, so it follows the visitor's font size. The two fonts load from Google Fonts in `index.html`.
+
 ## The game frame
 Everything the visitor sees sits inside one frame with a fixed aspect ratio, centered in the window, so every screen is the same size.
 
@@ -112,7 +130,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
   - Landscape (wider than tall) is a 4:3 frame, and portrait is 3:4. The frame is as large as fits, so on a phone held upright it uses the full width.
   - The size is rounded to whole device pixels, so the edges stay sharp.
   - The font size is the largest multiple of 8 device pixels that lets the layout (40 characters across in landscape, 30 in portrait) fit. Press Start 2P is drawn on an 8-pixel grid, so those sizes render without blur.
-- `GameFrame` listens for window resizes, calls `computeFrame`, and centers a frame of exactly that size with that font size. It gives the orientation to the screens through `FrameContext` (`useFrame`). `App.jsx` wraps `BattleScreen` in it.
+- `GameFrame` listens for window resizes, calls `computeFrame`, and centers a frame of exactly that size with that font size. It gives the orientation to the screens through `FrameContext` (`useFrame`). `App.jsx` wraps the intro and the battle in it.
 - Nothing is scaled with CSS `transform` or viewport units, because those blur pixel fonts. The frame really is that size, and the text really is that size.
 - In `BattleScreen.css` every size is in `em`, so the whole layout scales with the frame's font size. Every screen fills the frame: the battle field takes the leftover height above the text box, the party grid shares the height evenly, and the summary pins BACK to the bottom. The portrait layout is chosen by the frame's `data-orientation`, not by a media query.
 - The battle sprites are sized with container query units, as the smaller of a height-based and a width-based limit, so they fit whatever shape the field is.
@@ -145,9 +163,10 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 
 ## Editing content
 - Change move names, damage, or messages in `src/data/moves.js`. The move menu is two columns in a fixed-width box (`grid-template-columns` on `.panel` in `BattleScreen.css`, 22em), sized so that "TypeScript" fits on one line. If you add a longer move name, widen that column a little or the name will break across two lines.
-- Change the party (names, levels, HP, experience, type, role, dates, description) in `src/data/party.js`. `type`, `role`, `dates`, and `description` are optional, and the summary leaves out whichever are missing. The RUN page can import this same file later.
+- Change the party (names, levels, HP, experience, type, role, dates, description) in `src/data/party.js`. `type`, `role`, `dates`, and `description` are optional, and the summary leaves out whichever are missing. The plain portfolio uses this same file for its Experience section.
 - Change what the Professor says in `src/data/intro.js`, one string per message. Keep each line to 100 characters or fewer; the data test fails otherwise. The text box fits at least about 6 lines of 24 characters even on a small phone, so a 100-character line always fits, and a longer one should be split into two entries. To use a real image for the Professor, import it there and set `professor.sprite`.
-- Change the bag items, links, and descriptions in `src/data/bag.js`. The resume is the file `public/resume.pdf`.
+- Change the bag items, links, and descriptions in `src/data/bag.js`. The resume is the file `public/resume.pdf`. The portfolio's Links section uses the same items.
+- Change the portfolio's name, tagline, and About paragraphs (one string each) in `src/data/profile.js`. Its Skills come from `src/data/moves.js`.
 - Change the Recruiter's Pokémon and attacks in `src/data/pokemon.js`.
 - To add real sprites, put the images in `src/assets/sprites/`, import them in the data file, and set each Pokémon's `sprite`.
 
@@ -160,4 +179,6 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - The switching tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover the messages and their order, the Recruiter's attack after a switch, each Pokémon keeping its own HP, switching to the Pokémon already in battle, switching after victory, rematch, and the Recruiter's replacement not appearing before its message.
 - The fainting tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover fainting and its messages, the faint applying only with its message, the party opening by itself and refusing Escape, CANCEL and fainted Pokémon, a forced switch with no recall or attack, the last Pokémon able to fight staying at 1 HP, a full battle that still ends in victory, and rematch. In the logic tests, the `recover` helper plays through a forced switch so long battles can run to the end.
 - `intro.test.js` checks the intro rules (advance, skip from every line, done stays done, no lines) and the dialogue data (12 lines, no stray spaces, none over `MAX_LINE_LENGTH`). `IntroScreen.test.jsx` and `App.test.jsx` check the screen: clicking through every line ends on the battle, SKIP and Escape from every line, Enter while a line is still typing finishing the line instead of skipping ahead, and the Escape listener being gone after the intro.
+- `route.test.js` and `links.test.js` check the hash rule (exactly `#portfolio`, nothing else) and the link attributes. `PortfolioPage.test.jsx` checks that every experience, skill, and link appears with the right targets, the headings, the Back button being first in the tab order, experiences with missing optional fields, the resume cases, and the page title and background being restored. `App.test.jsx` checks RUN (the portfolio opens only after the message), that the game is hidden from assistive tech but still mounted, that Back keeps the HP, the active Pokémon, and the very same sprite elements, direct `/#portfolio` with no intro, and the browser's Back and Forward.
+- The real-browser checks (headless Edge) covered the whole RUN round trip with no animations replaying, direct and reloaded `/#portfolio`, no horizontal scrolling from 320px to 1920px wide, and text contrast.
 - `PartySummary.test.jsx` checks that a Pokémon with missing optional fields still renders.

@@ -4,7 +4,7 @@ import { createIntro, getIntroLine, introReducer } from '../logic/intro.js'
 import Sprite from './Sprite.jsx'
 import TextBox from './TextBox.jsx'
 
-export default function IntroScreen({ onDone }) {
+export default function IntroScreen({ onDone, active = true }) {
   const [intro, setIntro] = useState(() => createIntro(introLines.length))
 
   function send(action) {
@@ -14,12 +14,13 @@ export default function IntroScreen({ onDone }) {
   }
 
   useEffect(() => {
+    if (!active) return undefined
     function handleKeyDown(event) {
       if (event.key === 'Escape' && introReducer(intro, { type: 'skip' }).done) onDone()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [intro, onDone])
+  }, [intro, onDone, active])
 
   return (
     <main className="battle">

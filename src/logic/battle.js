@@ -46,9 +46,7 @@ export function moveCursor(
   return Math.min(nextCell, last)
 }
 
-export function getSelectionMessage(option) {
-  return `Navin wants to ${option}!`
-}
+export const RUN_MESSAGE = 'Got away safely!'
 
 export function getHpPercent(hp, maxHp) {
   if (maxHp <= 0) return 0
@@ -199,7 +197,7 @@ function selectOption(state, index) {
   if (option === 'FIGHT') return { ...state, menu: 'fight', cursor: 0 }
   if (option === 'BAG') return { ...state, menu: 'bag', cursor: 0 }
   if (option === 'PARTY') return { ...state, menu: 'party', cursor: 0 }
-  return { ...state, cursor: index, queue: [{ text: getSelectionMessage(option) }] }
+  return { ...state, cursor: index, queue: [{ text: RUN_MESSAGE, exit: 'portfolio' }] }
 }
 
 export function battleReducer(state, action) {
