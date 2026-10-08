@@ -9,7 +9,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements. Built
 - BAG: resume and links. Built
 - Intro where the Professor introduces the site and how to play. Built, with no transition into the battle yet
-- Badge screen on winning, with contact info
+- Badge screen on winning: the Recruiter hands over the PORTFOLIO BADGE, and CONTINUE opens the plain portfolio. Built, with placeholder text and image. Contact info is on the plain portfolio
 - RUN: a plain, separate portfolio page with the same content, with a way back to the game. Built
 
 ## Requirements
@@ -27,7 +27,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - After each move, the Recruiter's Pokémon attacks back for fixed damage, unless it just fainted: SCREENMON 10, HIREMON 12, OFFERMON 14.
 - Navin's Pokémon can faint, but the last one still able to fight never drops below 1 HP, so the visitor cannot lose. Opponent HP never drops below 0.
 - When a Recruiter Pokémon faints, the next one is sent out with a message.
-- When all three faint, the battle shows a victory message and a REMATCH option that resets everything.
+- When all three faint, the battle shows the victory messages and the badge dialogue, then the badge screen (see below). There is no rematch button: "Play again" on the plain portfolio restarts the battle.
 - Messages show one at a time with a typewriter effect. Enter or a click finishes the line, then moves to the next.
 - Escape or BACK returns from the move menu to the main menu. RUN leaves the battle for the plain portfolio (see below).
 - Navin's lead Pokémon in the battle is the first one in the party (PORYGON). Its HP lives in the party list, so the party screen always shows its current HP.
@@ -40,7 +40,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - PARTY, then a Pokémon, then SWITCH brings it into battle. The text box shows "Come back, PORYGON!", then "Go, ALAKAZAM!". Switching uses up the turn, so the Recruiter then attacks the new Pokémon with its usual fixed damage. The Recruiter's Pokémon takes no damage.
 - Each Pokémon keeps its own HP, so switching away and back keeps it. The four moves are the same whichever Pokémon is active. The battle screen shows the active Pokémon's name, level, and HP numbers.
 - SWITCH on the Pokémon already in battle only shows "PORYGON is already in battle!" and returns to the party grid.
-- No switching after victory, because the victory screen only offers REMATCH. REMATCH restores every Pokémon's HP and puts the first one back in battle.
+- No switching after victory, because the badge screen only offers CONTINUE. Play again (see Badge screen) restores every Pokémon's HP and puts the first one back in battle.
 
 ## Fainting and forced switching
 - When a Pokémon of Navin's reaches 0 HP, the messages show the attack and then "PORYGON fainted!". Its sprite sinks out of view and its status box goes away.
@@ -58,7 +58,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The Professor's image is the `sprite` field in the same file. It is `null` for now, which shows a placeholder box.
 
 ## Battle start
-- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. REMATCH replays this intro.
+- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. Play again replays this intro.
 
 ## Animations
 - Recall: the Pokémon flashes and shrinks into a Pokéball. Send-out: a Pokéball appears, opens, and the Pokémon grows into place. The Recruiter's replacements use the same send-out.
@@ -85,6 +85,15 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The "Back to the game" button at the top (the first thing in the tab order) returns to the battle exactly where it was: same HP, same Pokémon out, same menu with the cursor on RUN, and no animations replaying.
 - The page has its own address, `/#portfolio`, so it can be linked from a resume. Opening that address shows the plain page with no intro. "Back to the game" from there starts the game from the intro. The browser's Back and Forward buttons work too.
 - The About text and name are in `src/data/profile.js`.
+
+## Badge screen
+- After "Navin won the battle!", the Recruiter says "Impressive! You've earned this." and then "NAVIN received the PORTFOLIO BADGE!", in the same text box on the battle field. Then the badge screen fills the frame: the badge image (a placeholder box for now), "PORTFOLIO BADGE", a text box ("NAVIN earned the PORTFOLIO BADGE!"), and a CONTINUE button at the bottom right.
+- CONTINUE (Enter or a click) opens the plain portfolio. Escape and the arrow keys do nothing on this screen.
+- It is only reached by winning: the badge screen appears only after the last Recruiter Pokémon faints.
+- When the plain portfolio is reached after winning, its top button says "Play again". It starts a brand-new battle without the Professor intro: every Pokémon at full HP, PORYGON leading, and the Recruiter's full team, beginning at "A Recruiter wants to battle!".
+- When the portfolio is reached through RUN, it still says "Back to the game" and keeps the battle exactly as it was. A direct `/#portfolio` link also says "Back to the game".
+- The browser's Back button from the portfolio after winning returns to the badge screen, and CONTINUE goes to the portfolio again.
+- The dialogue, the badge name, and the badge image are in `src/data/badge.js`. The image is `null` for now, which shows a placeholder box.
 
 ## Game frame
 - The whole game sits in one frame with a fixed aspect ratio, centered in the browser both ways: 4:3 on desktops, tablets, and phones held sideways, and 3:4 on phones held upright, where it uses the full width.
@@ -115,7 +124,7 @@ Next:
 1. PARTY summaries (done)
 2. BAG (done)
 3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements (done)
-4. Intro with the Professor (done), then the battle transition and the badge screen
+4. Intro with the Professor (done), the badge screen (done), then the battle transition
 5. RUN as a plain, separate portfolio page (done)
 
 ## Known gaps
@@ -127,7 +136,8 @@ Next:
 - While the small menu is open on the party screen, it covers part of the bottom-right card
 - The intro goes straight into the battle with no transition, and the Professor is a placeholder box
 - Screen-reader behavior of the pixel-style UI is untested
-- Winning only shows a victory message and REMATCH; the badge screen is not built yet
+- The badge image and the badge text (`src/data/badge.js`) are placeholders
+- A win is not remembered across a reload, so reloading the portfolio after winning shows "Back to the game" and starts from the intro
 - The intro text is a first draft for Navin to edit, and it plays again on every page load
 - Move damage and Pokémon names are placeholders
 - The PARTY descriptions still need to be rewritten in Navin's own words

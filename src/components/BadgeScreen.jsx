@@ -15,7 +15,7 @@ export default function BadgeScreen({ onContinue }) {
         )}
         <p className="badge__name">{badge.name}</p>
       </div>
-      <div className="screen__footer">
+      <div className="screen__footer screen__footer--tall">
         <TextBox message={badge.prompt} />
         <button ref={buttonRef(0)} type="button" className="screen__cancel screen__cancel--selected" onClick={onContinue}>
           <span className="menu__cursor" aria-hidden="true">
