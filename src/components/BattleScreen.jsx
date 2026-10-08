@@ -10,7 +10,7 @@ import Sprite from './Sprite.jsx'
 import TextBox from './TextBox.jsx'
 import './BattleScreen.css'
 
-export default function BattleScreen() {
+export default function BattleScreen({ onRun = () => {} }) {
   const [state, dispatch] = useReducer(battleReducer, null, createBattle)
   const hasMessages = state.queue.length > 0
   const opponent = state.team[state.active]
@@ -32,6 +32,12 @@ export default function BattleScreen() {
   }
 
   const handleSelect = (index) => dispatch({ type: 'select', index })
+
+  function advance() {
+    const message = state.queue[0]
+    dispatch({ type: 'advance' })
+    if (message?.exit === 'portfolio') onRun()
+  }
 
   return (
     <main className="battle">
@@ -68,7 +74,7 @@ export default function BattleScreen() {
           message={hasMessages ? state.queue[0].text : null}
           onKeyDown={handleKeyDown}
           onSelect={handleSelect}
-          onAdvance={() => dispatch({ type: 'advance' })}
+          onAdvance={advance}
         />
       )}
       {state.menu === 'bag' && (
@@ -87,7 +93,7 @@ export default function BattleScreen() {
           <TextBox
             message={message}
             interactive={hasMessages}
-            onAdvance={() => dispatch({ type: 'advance' })}
+            onAdvance={advance}
           />
           {!hasMessages && (
             <BattleMenu

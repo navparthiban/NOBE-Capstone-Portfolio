@@ -7,8 +7,8 @@ import {
   getLead,
   getMenuOptions,
   getPrompt,
-  getSelectionMessage,
   moveCursor,
+  RUN_MESSAGE,
   takeTurn,
 } from './battle.js'
 
@@ -188,10 +188,44 @@ describe('moveCursor with the last option right-aligned', () => {
   })
 })
 
-describe('getSelectionMessage', () => {
-  it('shows the message for each option', () => {
-    expect(getSelectionMessage('BAG')).toBe('Navin wants to BAG!')
-    expect(getSelectionMessage('RUN')).toBe('Navin wants to RUN!')
+describe('RUN', () => {
+  const runOption = 3
+
+  it('queues "Got away safely!" and marks it as the way out to the portfolio', () => {
+    const state = select(clearQueue(createBattle()), runOption)
+    expect(state.queue).toEqual([{ text: 'Got away safely!', exit: 'portfolio' }])
+    expect(RUN_MESSAGE).toBe('Got away safely!')
+  })
+
+  it('changes nothing else, so the battle comes back exactly as it was, with the cursor on RUN', () => {
+    const before = clearQueue(createBattle())
+    const after = clearQueue(select(before, runOption))
+    expect(after).toEqual({ ...before, cursor: runOption })
+    expect(after.menu).toBe('main')
+    expect(getLead(after).hp).toBe(60)
+  })
+
+  it('keeps HP and the active Pokémon after RUN, mid-battle', () => {
+    let state = clearQueue(play(createBattle(), REACT))
+    state = clearQueue(select(select(select(state, PARTY_OPTION), 2), 0))
+    const before = state
+    const after = clearQueue(select(before, runOption))
+    expect(after.party).toEqual(before.party)
+    expect(after.team).toEqual(before.team)
+    expect(after.lead).toBe(2)
+    expect(after.active).toBe(before.active)
+    expect(after.fx).toEqual(before.fx)
+  })
+
+  it('does nothing while a message is still showing', () => {
+    const state = select(clearQueue(createBattle()), runOption)
+    expect(select(state, 0)).toBe(state)
+  })
+
+  it('is the only message with an exit', () => {
+    const state = createBattle()
+    expect(state.queue.every((message) => message.exit === undefined)).toBe(true)
+    expect(select(clearQueue(createBattle()), 0).queue).toEqual([])
   })
 })
 
@@ -284,11 +318,6 @@ describe('menus', () => {
   it('ignores Escape on the main menu', () => {
     const state = clearQueue(createBattle())
     expect(battleReducer(state, { type: 'back' })).toBe(state)
-  })
-
-  it('queues a placeholder message for RUN', () => {
-    const state = clearQueue(createBattle())
-    expect(texts(select(state, 3))).toEqual(['Navin wants to RUN!'])
   })
 
   it('moves the cursor through the move menu without wrapping', () => {

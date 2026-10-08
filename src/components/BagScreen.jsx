@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { bagItems } from '../data/bag.js'
+import { getLinkProps } from '../logic/links.js'
 import useFileAvailable from '../hooks/useFileAvailable.js'
 import useMenuFocus from '../hooks/useMenuFocus.js'
 import TextBox from './TextBox.jsx'
@@ -64,8 +65,7 @@ export default function BagScreen({ cursor, onKeyDown, onSelect }) {
                   <a
                     ref={buttonRef(index)}
                     className={className}
-                    href={item.url}
-                    {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    {...getLinkProps(item)}
                     tabIndex={index === cursor ? 0 : -1}
                     onClick={() => handleClick(item, index)}
                   >

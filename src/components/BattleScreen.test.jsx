@@ -127,11 +127,46 @@ describe('BattleScreen menus', () => {
     expect(screen.getByRole('button', { name: 'RUN' })).toHaveFocus()
   })
 
-  it('keeps placeholder messages for RUN', () => {
+  it('shows "Got away safely!" for RUN, and only leaves once that message is dismissed', () => {
+    const onRun = vi.fn()
+    render(<BattleScreen onRun={onRun} />)
+    skipIntro()
+    clickOption('RUN')
+    expect(status()).toHaveTextContent('Got away safely!')
+    expect(onRun).not.toHaveBeenCalled()
+    tick(2000)
+    expect(onRun).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Next message' }))
+    expect(onRun).toHaveBeenCalledTimes(1)
+  })
+
+  it('finishes the RUN message first when it is pressed while still typing', () => {
+    const onRun = vi.fn()
+    render(<BattleScreen onRun={onRun} />)
+    skipIntro()
+    clickOption('RUN')
+    tick(100)
+    fireEvent.click(screen.getByRole('button', { name: 'Next message' }))
+    expect(onRun).not.toHaveBeenCalled()
+    expect(status()).toHaveTextContent('Got away safely!')
+  })
+
+  it('goes back to the same menu with the cursor on RUN after getting away', () => {
     render(<BattleScreen />)
     skipIntro()
     clickOption('RUN')
-    expect(status()).toHaveTextContent('Navin wants to RUN!')
+    nextMessage()
+    expect(hasMenu()).toBe(true)
+    expect(status()).toHaveTextContent('What will PORYGON do?')
+    expect(screen.getByRole('button', { name: 'RUN' })).toHaveFocus()
+  })
+
+  it('does not call onRun for ordinary messages', () => {
+    const onRun = vi.fn()
+    render(<BattleScreen onRun={onRun} />)
+    skipIntro()
+    playReactTurn()
+    expect(onRun).not.toHaveBeenCalled()
   })
 
   describe('bag', () => {
