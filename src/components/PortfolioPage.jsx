@@ -35,7 +35,6 @@ function LinkItem({ item, missing }) {
         </a>
       )}
       <p>{missing ? item.missingMessage : item.description}</p>
-      {!missing && item.copyText && <p className="portfolio__address">{item.copyText}</p>}
     </li>
   )
 }
