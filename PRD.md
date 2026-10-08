@@ -10,7 +10,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - BAG: resume and links. Built
 - Intro where the Professor introduces the site and how to play. Built, with no transition into the battle yet
 - Badge screen on winning, with contact info
-- RUN: a plain, separate portfolio page, designed after the game is done
+- RUN: a plain, separate portfolio page with the same content, with a way back to the game. Built
 
 ## Requirements
 - Public GitHub repo
@@ -29,7 +29,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - When a Recruiter Pokémon faints, the next one is sent out with a message.
 - When all three faint, the battle shows a victory message and a REMATCH option that resets everything.
 - Messages show one at a time with a typewriter effect. Enter or a click finishes the line, then moves to the next.
-- Escape or BACK returns from the move menu to the main menu. RUN still shows a placeholder message.
+- Escape or BACK returns from the move menu to the main menu. RUN leaves the battle for the plain portfolio (see below).
 - Navin's lead Pokémon in the battle is the first one in the party (PORYGON). Its HP lives in the party list, so the party screen always shows its current HP.
 
 ## Party
@@ -68,7 +68,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 
 ## Bag
 - BAG opens a bag screen like the games': a bag picture box, a list of four items, and a text box along the bottom that describes the highlighted item, with CANCEL at the bottom right. It fills the same game frame as every other screen.
-- Items, in `src/data/bag.js` (the RUN page can reuse them):
+- Items, in `src/data/bag.js` (the plain portfolio reuses them):
   - RESUME: `public/resume.pdf`, opens in a new tab
   - GITHUB: https://github.com/navparthiban, new tab
   - LINKEDIN: https://www.linkedin.com/in/navin-parthiban, new tab
@@ -76,6 +76,15 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - Items are real links, so Enter and a click open them. Web links use `target="_blank"` with `rel="noopener noreferrer"`, and screen readers hear "(opens in a new tab)".
 - Arrow keys move through the items and CANCEL without wrapping. Escape or CANCEL returns to the main menu with the cursor on BAG.
 - If `public/resume.pdf` is missing, RESUME still shows, but as a muted button, and the text box says "Resume isn't available yet." instead of linking to a broken page. If the check can't run (for example offline), RESUME stays a link.
+
+## Plain portfolio
+- RUN shows "Got away safely!" in the text box. When the message is dismissed (Enter or a click), the plain portfolio opens.
+- It is a normal scrolling web page, outside the game frame, in the game's colors. Section headings use the pixel font and the text uses Atkinson Hyperlegible, which is easier to read. It works on desktops and phones.
+- Sections: a header (name and "CS + Chemistry at UIUC"), About, Experience (from the party data: name, role, dates, type, description, with the Pokémon's name as a small tag), Skills (the moves), and Links and resume (the bag items). Anything missing is left out. If `public/resume.pdf` is missing, RESUME shows "Resume isn't available yet." instead of a broken link.
+- The page has one main heading, a heading for each section, visible focus, and no horizontal scrolling down to 320px wide. The body text has at least 5.5:1 contrast.
+- The "Back to the game" button at the top (the first thing in the tab order) returns to the battle exactly where it was: same HP, same Pokémon out, same menu with the cursor on RUN, and no animations replaying.
+- The page has its own address, `/#portfolio`, so it can be linked from a resume. Opening that address shows the plain page with no intro. "Back to the game" from there starts the game from the intro. The browser's Back and Forward buttons work too.
+- The About text and name are in `src/data/profile.js`.
 
 ## Game frame
 - The whole game sits in one frame with a fixed aspect ratio, centered in the browser both ways: 4:3 on desktops, tablets, and phones held sideways, and 3:4 on phones held upright, where it uses the full width.
@@ -86,7 +95,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - Arrow keys move through the grid in all four directions and stop at the edges without wrapping. Down from the bottom row reaches CANCEL, and Up from CANCEL returns to the card above it.
 - Enter or a click selects. Escape or CANCEL goes back one screen: small menu to grid, summary to grid, then grid to the main menu. While the small menu is open, clicking the other cards does nothing.
 - The summary screen has an options list (only BACK for now).
-- The lineup is in `src/data/party.js`, which the RUN page can reuse later:
+- The lineup is in `src/data/party.js`, which the plain portfolio reuses:
   - PORYGON: ClearSign, legal contract simplifier web app
   - ELECTRODE: SCARF research on inherited arrhythmias
   - ALAKAZAM: Mathnasium math instructor
@@ -107,7 +116,7 @@ Next:
 2. BAG (done)
 3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements (done)
 4. Intro with the Professor (done), then the battle transition and the badge screen
-5. RUN as a plain, separate portfolio page, designed after the game is done
+5. RUN as a plain, separate portfolio page (done)
 
 ## Known gaps
 - No real content yet (skills). `public/resume.pdf` has not been added, so RESUME shows the "not available yet" message until it is
@@ -122,4 +131,6 @@ Next:
 - The intro text is a first draft for Navin to edit, and it plays again on every page load
 - Move damage and Pokémon names are placeholders
 - The PARTY descriptions still need to be rewritten in Navin's own words
+- The About text on the plain portfolio is starter text for Navin to rewrite in `src/data/profile.js`, and the name there ("Navin Parthiban") should be confirmed
+- The plain portfolio loads its fonts (Atkinson Hyperlegible and Press Start 2P) from Google Fonts, so offline it falls back to system fonts
 - Reported by Navin: on phones held sideways, the party screen falls back to a single column. Not reproduced in an emulated 844×390 sideways phone (two columns there), so the cause is unknown
