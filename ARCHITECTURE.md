@@ -15,6 +15,8 @@ src/
     intro.test.js
     route.js           which view the address asks for (game or portfolio)
     route.test.js
+    transition.js      the battle transition's timing and which kind to use
+    transition.test.js
     links.js           the link attributes shared by the bag and the portfolio
     links.test.js
   hooks/
@@ -23,6 +25,7 @@ src/
     useFrame.js        the frame's orientation (landscape or portrait), shared with the screens
     useFileAvailable.js  checks whether a file exists on the site (used for the resume)
     useView.js         the current view, kept in sync with the address hash, plus open and close
+    reducedMotion.js   whether the visitor prefers reduced motion (shared)
   components/          React components
     GameFrame.jsx      the fixed-ratio frame, centered and scaled to the window
     BattleScreen.jsx   runs the battle reducer and decides which screen to show
@@ -37,6 +40,7 @@ src/
     BagScreen.jsx      the bag: item links, description text box, and CANCEL
     BadgeScreen.jsx    the badge, its name, a text box, and CONTINUE
     IntroScreen.jsx    the Professor intro, with the typewriter text box, SKIP, and Escape
+    BattleTransition.jsx  the bars and flash (or fade) between the intro and the battle
     PortfolioPage.jsx  the plain portfolio page
     Portfolio.css      its styling (separate from the game)
     BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx, BagScreen.test.jsx, IntroScreen.test.jsx, PortfolioPage.test.jsx
@@ -110,17 +114,24 @@ key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state ->
 - `PartyScreen` and `BagScreen` share the `screen__footer` and `screen__cancel` styles for the text box with CANCEL along the bottom.
 
 ## How the intro works
-- `App.jsx` keeps one flag, `introDone`. It shows `IntroScreen` until that screen calls `onDone`, then `BattleScreen`. The battle code does not know the intro exists, and the battle is not touched by it. The trainer is always NAVIN (the battle messages already say "Navin"), so no name is stored.
+- `App.jsx` keeps a `phase`: `'intro'`, `'transition'`, or `'battle'`. It shows `IntroScreen` until that screen calls `onDone`, then `BattleTransition`, then `BattleScreen`. The battle code does not know the intro exists, and the battle is not touched by it. The trainer is always NAVIN (the battle messages already say "Navin"), so no name is stored.
 - `src/logic/intro.js` holds the rules as plain functions. The state is `{ index, count, done }`. `introReducer(state, action)` takes `advance` (next line, and done after the last one) or `skip` (done from any line). Once done, it stays done. `getIntroLine(state, lines)` gives the line to show, and `MAX_LINE_LENGTH` is the longest line allowed.
 - `IntroScreen` keeps that state with `useState` and runs every action through `introReducer`. When the result is done, it calls `onDone()`. It reuses `TextBox` (typewriter, Enter or click finishes a line that is still typing, focus on the button) and `Sprite` with no image for the Professor, inside the same `.field` and `.panel` styles as the battle, so it fits the same frame.
 - SKIP is a normal button in the corner (`.intro__skip`, placed after the text box so Tab goes to it next). Escape is a listener on `window`, added in an effect and removed when the intro goes away, so it works wherever the focus is and can never reach the battle. The SKIP button has `aria-keyshortcuts="Escape"`.
 - With reduced motion on, the typewriter already shows each full line at once.
 
+## How the battle transition works
+- `src/logic/transition.js` has the numbers and one plain function. `TRANSITION` holds the duration and bar count for each kind, and `getTransition(reducedMotion)` returns `{ kind, duration, count }` with `kind` either `'bars'` or `'fade'`.
+- `BattleTransition` reads that once when it mounts, using `prefersReducedMotion()` from `src/hooks/reducedMotion.js` (shared with `useTypewriter`). It draws `count` black bars and a flash layer, and passes the duration and bar count to the CSS as `--duration` and `--bars`. It calls `onDone` from a `setTimeout` of the same duration. It does not wait for `animationend`, so it finishes even if animations are off, and the tests can drive it with fake timers.
+- In `BattleScreen.css`, each bar slides in with `translateX` (odd bars from the left, even from the right) with a delay of `--index`, and the bars finish just before the flash begins at 75% of the duration. The fade kind uses only the flash layer, coloured black, fading in. The pictures are `aria-hidden`, and a visually hidden "Battle starting" status is the only thing screen readers get.
+- `App.jsx` moves from `'intro'` to `'transition'` when the intro finishes (a last line, SKIP, or Escape all end the same way), and from `'transition'` to `'battle'` when `BattleTransition` calls `onDone`. Nothing else ever sets `'transition'`, so Play again (it only changes `battleKey`) and Back to the game skip it.
+- `BattleScreen` is not mounted during the transition, so there is nothing to press and its first message has not started typing. The input is ignored by absence, not by a flag. The existing focus effect in `App` also runs when `phase` changes, so focus lands on the battle's text box once it appears.
+
 ## How the badge screen works
 - The final knockout in `takeTurn` queues "Recruiter has no Pokémon left!", "Navin won the battle!", and then the lines in `badgeLines` (`src/data/badge.js`), and sets `menu: 'badge'`. This is the only place that menu is set, so it can only be reached by winning. Its one option is CONTINUE.
 - In the reducer, `back`, `cursor`, and `select` do nothing on the badge menu, so Escape and the arrows are ignored. CONTINUE is not handled by the reducer, like RUN: `BadgeScreen`'s button calls `BattleScreen`'s `onWin` prop.
 - `BattleScreen` keeps the field (with the messages) on screen while the badge lines are queued, then moves the field away and shows `BadgeScreen` once the queue is empty. `BadgeScreen` focuses CONTINUE with `useMenuFocus` and reuses the `screen__footer` styles.
-- `App.jsx` has a `won` flag and a `battleKey`. `onWin` sets `won` and opens the portfolio, which gets `backLabel="Play again"`. Play again clears `won`, adds one to `battleKey`, and closes the portfolio. The new key remounts `BattleScreen`, which starts a fresh `createBattle()`, and `introDone` is still true, so the Professor does not come back. Through RUN, `won` stays false, so the label and the kept battle state are unchanged.
+- `App.jsx` has a `won` flag and a `battleKey`. `onWin` sets `won` and opens the portfolio, which gets `backLabel="Play again"`. Play again clears `won`, adds one to `battleKey`, and closes the portfolio. The new key remounts `BattleScreen`, which starts a fresh `createBattle()`, and `phase` is still `'battle'`, so neither the Professor nor the transition comes back. Through RUN, `won` stays false, so the label and the kept battle state are unchanged.
 - `won` lives in memory only, so a reload or a direct `/#portfolio` link shows "Back to the game".
 
 ## How the plain portfolio works
@@ -194,4 +205,6 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - The real-browser checks (headless Edge) covered the whole RUN round trip with no animations replaying, direct and reloaded `/#portfolio`, no horizontal scrolling from 320px to 1920px wide, and text contrast.
 - The badge tests: `battle.test.js` checks the badge lines being queued after the victory messages, the badge menu ignoring Escape, arrows, and select, and that no menu path or earlier knockout reaches it. `badge.test.js` checks the data. `BattleScreen.test.jsx` plays a full battle through the badge dialogue to the badge screen and checks CONTINUE, Escape, and the placeholder or real image. `App.test.jsx` checks CONTINUE opening the portfolio with Play again, the fresh battle without the intro (every HP and the Recruiter reset), RUN and direct links still saying Back to the game, and the browser Back button.
 - The real-browser check (headless Edge) played a full win at desktop, phone, and sideways phone sizes: the badge screen fits the frame, CONTINUE and Play again work by keyboard.
+- The transition tests: `transition.test.js` checks the two kinds and that the fade is shorter. `BattleTransition.test.jsx` checks the six bars, `onDone` firing once and only after the duration, and nothing firing after it is removed. `App.test.jsx` checks the intro's last line, SKIP, and Escape each playing it before the challenge message, keys and clicks being ignored during it, Play again and Back to the game skipping it, and the fade (no bars) when `matchMedia` reports reduced motion.
+- The real-browser check (headless Edge) stepped the animation to several points (bars sweeping, the screen black, the flash), confirmed it fills the frame at desktop and phone sizes, confirmed the fade with reduced motion emulated, and confirmed the battle appears afterwards with focus on its text box.
 - `PartySummary.test.jsx` checks that a Pokémon with missing optional fields still renders.

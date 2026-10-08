@@ -811,7 +811,7 @@
   height: calc(100% / var(--bars) + 1px);
   background: #000;
   transform: translateX(-100%);
-  animation: bar-in calc(var(--duration) * 0.5) steps(8, end) forwards;
+  animation: bar-in calc(var(--duration) * 0.4) steps(8, end) forwards;
   animation-delay: calc(var(--index) * var(--duration) * 0.07);
 }
 

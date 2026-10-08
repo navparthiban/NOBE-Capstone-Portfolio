@@ -8,7 +8,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - PARTY: six Pokémon, each a project or experience, with a grid and a summary screen. Built
 - Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements. Built
 - BAG: resume and links. Built
-- Intro where the Professor introduces the site and how to play. Built, with no transition into the battle yet
+- Intro where the Professor introduces the site and how to play. Built, followed by a battle transition. Built
 - Badge screen on winning: the Recruiter hands over the PORTFOLIO BADGE, and CONTINUE opens the plain portfolio. Built, with placeholder text and image. Contact info is on the plain portfolio
 - RUN: a plain, separate portfolio page with the same content, with a way back to the game. Built
 
@@ -51,11 +51,19 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The last Pokémon able to fight never faints (it stays at 1 HP), so the visitor can't run out of Pokémon and the win stays guaranteed.
 
 ## Intro
-- The site opens on a Professor intro, then goes straight into the battle with no transition. The trainer is always NAVIN, so the visitor is not asked for a name.
+- The site opens on a Professor intro, then plays the battle transition (see below) and goes into the battle. The trainer is always NAVIN, so the visitor is not asked for a name.
 - The screen is a placeholder box for the Professor above the same typewriter text box the battle uses, in the same scaled frame. The Professor says 12 lines, one at a time. Enter or a click finishes a line that is still typing, and Enter or a click on a finished line goes to the next one. After "Good luck!" the battle starts.
 - SKIP, in the top-right corner, and the Escape key both jump straight to the battle from any line.
 - The lines are in `src/data/intro.js`, so they are easy to edit. A line must be at most 100 characters (a test checks this). That fits the text box in both orientations, even on a small phone. A longer line should be split into two entries.
 - The Professor's image is the `sprite` field in the same file. It is `null` for now, which shows a placeholder box.
+
+## Battle transition
+- After the last Professor line, or after SKIP or Escape, black bars sweep across the game frame, one after another from alternating sides, until the screen is black. Then a quick white flash plays and the battle opens. It takes about 1.5 seconds.
+- Then the battle starts as before, with "A Recruiter wants to battle!" typing out in the text box.
+- It only plays after the intro. "Play again" and "Back to the game" (after RUN, or after the portfolio) go straight to the battle with no transition.
+- The battle is not on the page until the transition ends, so keys and clicks during it do nothing, and the first message starts from its first letter when the battle appears. Screen readers hear "Battle starting".
+- With reduced motion on, there are no bars or flash: the screen just fades to black in about 0.6 seconds, then the battle opens.
+- The timing is in `src/logic/transition.js`.
 
 ## Battle start
 - The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. Play again replays this intro.
@@ -124,7 +132,7 @@ Next:
 1. PARTY summaries (done)
 2. BAG (done)
 3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements (done)
-4. Intro with the Professor (done), the badge screen (done), then the battle transition
+4. Intro with the Professor (done), the badge screen (done), the battle transition (done)
 5. RUN as a plain, separate portfolio page (done)
 
 ## Known gaps
@@ -134,7 +142,7 @@ Next:
 - Pixel art and sprites not chosen
 - A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
 - While the small menu is open on the party screen, it covers part of the bottom-right card
-- The intro goes straight into the battle with no transition, and the Professor is a placeholder box
+- The Professor is a placeholder box
 - Screen-reader behavior of the pixel-style UI is untested
 - The badge image and the badge text (`src/data/badge.js`) are placeholders
 - A win is not remembered across a reload, so reloading the portfolio after winning shows "Back to the game" and starts from the intro
