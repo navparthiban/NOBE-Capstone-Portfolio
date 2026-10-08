@@ -19,6 +19,7 @@ export default function BattleScreen() {
   const { orientation } = useFrame()
   const opponentOut = state.fx.opponent !== 'hidden'
   const playerOut = state.fx.player !== 'hidden'
+  const playerFainted = state.fx.player === 'faint'
   const onField = !['party', 'partyMenu', 'summary', 'bag'].includes(state.menu)
 
   function handleKeyDown(event) {
@@ -55,12 +56,13 @@ export default function BattleScreen() {
             fx={state.fx.player}
           />
         )}
-        {playerOut && <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />}
+        {playerOut && !playerFainted && <PokemonStatus key={lead.name} pokemon={lead} side="player" showNumbers />}
       </section>
       {(state.menu === 'party' || state.menu === 'partyMenu') && (
         <PartyScreen
           party={state.party}
           menu={state.menu}
+          forced={state.mustSwitch}
           cursor={state.cursor}
           selected={state.selected}
           message={hasMessages ? state.queue[0].text : null}

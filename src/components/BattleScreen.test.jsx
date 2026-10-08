@@ -40,10 +40,20 @@ function hasMenu() {
   return screen.queryByRole('group', { name: 'Battle menu' }) !== null
 }
 
+const partyOpen = () => screen.queryByRole('region', { name: 'Party' }) !== null
+
+function chooseFirstHealthy() {
+  fireEvent.click(screen.getAllByRole('button', { name: /, level \d+, [1-9]\d* of/ })[0])
+  clickOption('SWITCH')
+}
+
 function playReactTurn() {
   clickOption('FIGHT')
   clickOption('React')
-  while (!hasMenu()) nextMessage()
+  while (!hasMenu()) {
+    if (partyOpen()) chooseFirstHealthy()
+    else nextMessage()
+  }
 }
 
 function status() {
@@ -220,7 +230,7 @@ describe('BattleScreen battle', () => {
     playReactTurn()
     expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute(
       'aria-valuenow',
-      '56',
+      '50',
     )
     expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
   })
@@ -430,7 +440,7 @@ describe('BattleScreen party', () => {
     skipIntro()
     playReactTurn()
     clickOption('PARTY')
-    expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute('aria-valuenow', '56')
+    expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute('aria-valuenow', '50')
     expect(screen.getByRole('progressbar', { name: 'MEOWTH HP' })).toHaveAttribute('aria-valuenow', '50')
   })
 })
@@ -565,8 +575,8 @@ describe('BattleScreen switching', () => {
     expect(playerStatus(container)).toHaveTextContent('55/55')
 
     nextMessage()
-    expect(status()).toHaveTextContent('SCREENMON used Interview! ALAKAZAM took 4 damage.')
-    expect(playerStatus(container)).toHaveTextContent('51/55')
+    expect(status()).toHaveTextContent('SCREENMON used Interview! ALAKAZAM took 10 damage.')
+    expect(playerStatus(container)).toHaveTextContent('45/55')
 
     nextMessage()
     expect(hasMenu()).toBe(true)
@@ -578,7 +588,7 @@ describe('BattleScreen switching', () => {
     const { container } = render(<BattleScreen />)
     skipIntro()
     playReactTurn()
-    expect(playerStatus(container)).toHaveTextContent('56/60')
+    expect(playerStatus(container)).toHaveTextContent('50/60')
     clickOption('PARTY')
     clickOption(/^ALAKAZAM/)
     clickOption('SWITCH')
@@ -588,7 +598,7 @@ describe('BattleScreen switching', () => {
     clickOption('SWITCH')
     while (!hasMenu()) nextMessage()
     expect(playerStatus(container)).toHaveTextContent('PORYGON')
-    expect(playerStatus(container)).toHaveTextContent('52/60')
+    expect(playerStatus(container)).toHaveTextContent('40/60')
   })
 
   it('only shows a message when switching to the Pokémon already in battle', () => {
@@ -623,5 +633,101 @@ describe('BattleScreen switching', () => {
     expect(status()).toHaveTextContent('Recruiter sent out HIREMON!')
     expect(sprite('SCREENMON')).not.toBeInTheDocument()
     expect(fx('HIREMON')).toBe('sendout')
+  })
+})
+
+describe('BattleScreen fainting', () => {
+  const sprite = (name) => screen.queryByRole('img', { name: `${name} sprite` })
+
+  function playUntilForced() {
+    const seen = []
+    let atFaint = null
+    for (let turn = 0; turn < 15; turn++) {
+      clickOption('FIGHT')
+      clickOption('React')
+      while (!hasMenu() && !partyOpen()) {
+        const text = status().textContent
+        seen.push(text)
+        if (text.includes('PORYGON fainted!')) {
+          atFaint = {
+            fx: sprite('PORYGON')?.closest('.sprite').dataset.fx,
+            statusBox: document.querySelector('.status--player') !== null,
+          }
+        }
+        nextMessage()
+      }
+      if (partyOpen()) return { seen, atFaint }
+    }
+    throw new Error('the lead never fainted')
+  }
+
+  it('shows the faint on the field, then opens the party by itself and asks for a Pokémon', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    const { seen, atFaint } = playUntilForced()
+    expect(seen.at(-1)).toContain('PORYGON fainted!')
+    expect(atFaint).toEqual({ fx: 'faint', statusBox: false })
+    expect(status()).toHaveTextContent('Bring out which Pokémon?')
+    expect(screen.queryByRole('button', { name: 'CANCEL' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^PORYGON, level 18, 0 of 60 HP, fainted/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^ELECTRODE/ })).toHaveFocus()
+  })
+
+  it('does not let Escape leave the forced party', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playUntilForced()
+    press('Escape')
+    expect(partyOpen()).toBe(true)
+    expect(status()).toHaveTextContent('Bring out which Pokémon?')
+  })
+
+  it('sends out the chosen Pokémon without a recall or an attack, then continues the battle', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    playUntilForced()
+    fireEvent.click(screen.getByRole('button', { name: /^ALAKAZAM/ }))
+    clickOption('SWITCH')
+    expect(partyOpen()).toBe(false)
+    expect(status()).toHaveTextContent('Go, ALAKAZAM!')
+    expect(container.querySelector('.status--player')).toHaveTextContent('ALAKAZAM')
+    expect(container.querySelector('.status--player')).toHaveTextContent('55/55')
+    nextMessage()
+    expect(hasMenu()).toBe(true)
+    expect(status()).toHaveTextContent('What will ALAKAZAM do?')
+    expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
+  })
+
+  it('does not let the visitor bring out a Pokémon that has fainted', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playUntilForced()
+    fireEvent.click(screen.getByRole('button', { name: /^PORYGON/ }))
+    clickOption('SWITCH')
+    expect(status()).toHaveTextContent('PORYGON has no energy left!')
+    nextMessage()
+    expect(partyOpen()).toBe(true)
+    expect(status()).toHaveTextContent('Bring out which Pokémon?')
+  })
+
+  it('lets the visitor open a summary while forced and come back to the same choice', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playUntilForced()
+    fireEvent.click(screen.getByRole('button', { name: /^MEOWTH/ }))
+    clickOption('SUMMARY')
+    expect(screen.getByRole('heading', { name: /MEOWTH/ })).toBeInTheDocument()
+    press('Escape')
+    expect(screen.getByRole('button', { name: /^MEOWTH/ })).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'CANCEL' })).not.toBeInTheDocument()
+  })
+
+  it('still reaches victory when the lead faints along the way', () => {
+    render(<BattleScreen />)
+    skipIntro()
+    for (let turn = 0; turn < 40 && !screen.queryByRole('button', { name: 'REMATCH' }); turn++) {
+      playReactTurn()
+    }
+    expect(screen.getByRole('button', { name: 'REMATCH' })).toHaveFocus()
   })
 })

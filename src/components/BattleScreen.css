@@ -107,12 +107,27 @@
   animation: ball-in 0.8s linear forwards;
 }
 
+.sprite[data-fx='faint'] .sprite__body {
+  animation: faint 0.7s linear forwards;
+}
+
 .sprite[data-fx='sendout'] .sprite__body {
   animation: grow 1s linear forwards;
 }
 
 .sprite[data-fx='sendout'] .sprite__ball {
   animation: ball-out 1s linear forwards;
+}
+
+@keyframes faint {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(60%);
+  }
 }
 
 @keyframes recall {
@@ -384,6 +399,10 @@
   border-color: var(--focus);
 }
 
+.party__card--fainted {
+  background: #dcdcdc;
+}
+
 .party__card--selected,
 .party__card--selected:hover {
   background: var(--selected-bg);
@@ -456,6 +475,10 @@
 
 .screen__footer .text-box {
   border-right: 0.25em solid var(--border);
+}
+
+.screen__footer .text-box:only-child {
+  border-right: 0;
 }
 
 .screen__cancel {
@@ -718,6 +741,10 @@
 
   .sprite .sprite__ball {
     display: none;
+  }
+
+  .sprite[data-fx='faint'] .sprite__body {
+    opacity: 0;
   }
 
   .hp__fill {
