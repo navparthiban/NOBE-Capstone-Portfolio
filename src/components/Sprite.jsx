@@ -10,7 +10,7 @@ export default function Sprite({ name, src, side, fx }) {
           <div className="sprite__placeholder" role="img" aria-label={`${name} sprite`} />
         )}
       </div>
-      {fx && <img className="sprite__ball" src={pokeball} alt="" />}
+      {(fx === 'recall' || fx === 'sendout') && <img className="sprite__ball" src={pokeball} alt="" />}
     </div>
   )
 }

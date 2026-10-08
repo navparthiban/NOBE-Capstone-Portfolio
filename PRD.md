@@ -24,8 +24,8 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 ## Battle rules
 - The Recruiter has three Pokémon, sent out one at a time. Navin's Pokémon starts at full HP.
 - Each move deals fixed damage (no randomness). Move names, damage, and messages are in `src/data/moves.js`; the Pokémon are in `src/data/pokemon.js`.
-- After each move, the Recruiter's Pokémon attacks back for small fixed damage, unless it just fainted.
-- Navin's Pokémon never drops below 1 HP, so the visitor cannot lose. Opponent HP never drops below 0.
+- After each move, the Recruiter's Pokémon attacks back for fixed damage, unless it just fainted: SCREENMON 10, HIREMON 12, OFFERMON 14.
+- Navin's Pokémon can faint, but the last one still able to fight never drops below 1 HP, so the visitor cannot lose. Opponent HP never drops below 0.
 - When a Recruiter Pokémon faints, the next one is sent out with a message.
 - When all three faint, the battle shows a victory message and a REMATCH option that resets everything.
 - Messages show one at a time with a typewriter effect. Enter or a click finishes the line, then moves to the next.
@@ -37,10 +37,18 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The selected card is highlighted with a blue border and background. When a phone is held upright, the grid becomes a single column.
 
 ## Switching
-- PARTY, then a Pokémon, then SWITCH brings it into battle. The text box shows "Come back, PORYGON!", then "Go, ALAKAZAM!". Switching uses up the turn, so the Recruiter then attacks the new Pokémon with the usual small fixed damage (never below 1 HP). The Recruiter's Pokémon takes no damage.
+- PARTY, then a Pokémon, then SWITCH brings it into battle. The text box shows "Come back, PORYGON!", then "Go, ALAKAZAM!". Switching uses up the turn, so the Recruiter then attacks the new Pokémon with its usual fixed damage. The Recruiter's Pokémon takes no damage.
 - Each Pokémon keeps its own HP, so switching away and back keeps it. The four moves are the same whichever Pokémon is active. The battle screen shows the active Pokémon's name, level, and HP numbers.
 - SWITCH on the Pokémon already in battle only shows "PORYGON is already in battle!" and returns to the party grid.
 - No switching after victory, because the victory screen only offers REMATCH. REMATCH restores every Pokémon's HP and puts the first one back in battle.
+
+## Fainting and forced switching
+- When a Pokémon of Navin's reaches 0 HP, the messages show the attack and then "PORYGON fainted!". Its sprite sinks out of view and its status box goes away.
+- When the messages are done, PARTY opens by itself with "Bring out which Pokémon?". CANCEL is gone, Escape does nothing, and the cursor can't reach CANCEL, so the visitor has to choose a Pokémon that can still fight. The small menu and the summary still work.
+- SWITCH then shows only "Go, ALAKAZAM!" with the normal send-out. There is no recall and no Recruiter attack after a forced switch, like the real games.
+- Fainted Pokémon show 0 HP and are greyed out in the party. SWITCH on one, forced or not, shows "PORYGON has no energy left!" and changes nothing.
+- A Pokémon can also faint right after a voluntary switch, if the attack that follows is enough to knock it out. That forces another switch.
+- The last Pokémon able to fight never faints (it stays at 1 HP), so the visitor can't run out of Pokémon and the win stays guaranteed.
 
 ## Battle start
 - The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. REMATCH replays this intro.

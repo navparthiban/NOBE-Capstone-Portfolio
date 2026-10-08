@@ -4,7 +4,11 @@ import HpBar from './HpBar.jsx'
 import Sprite from './Sprite.jsx'
 import TextBox from './TextBox.jsx'
 
-export default function PartyScreen({ party, menu, cursor, selected, message, onKeyDown, onSelect, onAdvance }) {
+function cardClass(selected, fainted) {
+  return ['party__card', selected && 'party__card--selected', fainted && 'party__card--fainted'].filter(Boolean).join(' ')
+}
+
+export default function PartyScreen({ party, menu, forced, cursor, selected, message, onKeyDown, onSelect, onAdvance }) {
   const optionsOpen = menu === 'partyMenu'
   const hasMessage = message !== null
   const idle = !hasMessage
@@ -13,7 +17,11 @@ export default function PartyScreen({ party, menu, cursor, selected, message, on
   const cancelIndex = party.length
   const highlighted = optionsOpen ? selected : cursor
   const cardsActive = idle && !optionsOpen
-  const prompt = optionsOpen ? `Do what with ${party[selected].name}?` : 'Choose a Pokémon.'
+  const prompt = optionsOpen
+    ? `Do what with ${party[selected].name}?`
+    : forced
+      ? 'Bring out which Pokémon?'
+      : 'Choose a Pokémon.'
 
   return (
     <section className="party" aria-label="Party" onKeyDown={onKeyDown}>
@@ -23,8 +31,8 @@ export default function PartyScreen({ party, menu, cursor, selected, message, on
             key={pokemon.name}
             ref={cardRef(index)}
             type="button"
-            className={index === highlighted ? 'party__card party__card--selected' : 'party__card'}
-            aria-label={`${pokemon.name}, level ${pokemon.level}, ${pokemon.hp} of ${pokemon.maxHp} HP`}
+            className={cardClass(index === highlighted, pokemon.hp === 0)}
+            aria-label={`${pokemon.name}, level ${pokemon.level}, ${pokemon.hp} of ${pokemon.maxHp} HP${pokemon.hp === 0 ? ', fainted' : ''}`}
             tabIndex={cardsActive && index === cursor ? 0 : -1}
             onClick={() => cardsActive && onSelect(index)}
           >
@@ -63,20 +71,22 @@ export default function PartyScreen({ party, menu, cursor, selected, message, on
       )}
       <div className="screen__footer">
         <TextBox message={hasMessage ? message : prompt} interactive={hasMessage} onAdvance={onAdvance} />
-        <button
-          ref={cardRef(cancelIndex)}
-          type="button"
-          className={
-            cardsActive && cancelIndex === cursor ? 'screen__cancel screen__cancel--selected' : 'screen__cancel'
-          }
-          tabIndex={cardsActive && cancelIndex === cursor ? 0 : -1}
-          onClick={() => cardsActive && onSelect(cancelIndex)}
-        >
-          <span className="menu__cursor" aria-hidden="true">
-            {cardsActive && cancelIndex === cursor ? '▶' : ''}
-          </span>
-          CANCEL
-        </button>
+        {!forced && (
+          <button
+            ref={cardRef(cancelIndex)}
+            type="button"
+            className={
+              cardsActive && cancelIndex === cursor ? 'screen__cancel screen__cancel--selected' : 'screen__cancel'
+            }
+            tabIndex={cardsActive && cancelIndex === cursor ? 0 : -1}
+            onClick={() => cardsActive && onSelect(cancelIndex)}
+          >
+            <span className="menu__cursor" aria-hidden="true">
+              {cardsActive && cancelIndex === cursor ? '▶' : ''}
+            </span>
+            CANCEL
+          </button>
+        )}
       </div>
     </section>
   )

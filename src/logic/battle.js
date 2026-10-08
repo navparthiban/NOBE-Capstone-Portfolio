@@ -85,6 +85,7 @@ export function createBattle() {
     team,
     active: 0,
     fx: { player: 'hidden', opponent: 'hidden' },
+    mustSwitch: false,
   }
 }
 
@@ -94,6 +95,29 @@ export function isOver(state) {
 
 function applyChanges(state, message) {
   return message?.changes ? { ...state, ...message.changes } : state
+}
+
+function counterattack(state, targetIndex) {
+  const attacker = state.team[state.active]
+  const target = state.party[targetIndex]
+  const floor = state.party.filter((pokemon) => pokemon.hp > 0).length > 1 ? 0 : 1
+  const taken = Math.min(attacker.attack.damage, target.hp - floor)
+  const party = state.party.map((pokemon, i) => (i === targetIndex ? { ...pokemon, hp: pokemon.hp - taken } : pokemon))
+  const messages = [
+    { text: `${attacker.name} used ${attacker.attack.name}! ${target.name} took ${taken} damage.`, changes: { party } },
+  ]
+  if (target.hp - taken === 0) {
+    messages.push({
+      text: `${target.name} fainted!`,
+      changes: { fx: { ...state.fx, player: 'faint' }, mustSwitch: true },
+    })
+  }
+  return messages
+}
+
+function openForcedParty(state) {
+  if (state.queue.length > 0 || !state.mustSwitch || state.menu === 'party') return state
+  return { ...state, menu: 'party', cursor: state.party.findIndex((pokemon) => pokemon.hp > 0) }
 }
 
 export function takeTurn(state, moveIndex) {
@@ -107,15 +131,7 @@ export function takeTurn(state, moveIndex) {
   const hasNext = state.active + 1 < team.length
 
   if (hp > 0) {
-    const lead = getLead(state)
-    const taken = Math.min(target.attack.damage, lead.hp - 1)
-    const updated = state.party.map((pokemon, index) =>
-      index === state.lead ? { ...pokemon, hp: pokemon.hp - taken } : pokemon,
-    )
-    queue.push({
-      text: `${target.name} used ${target.attack.name}! ${lead.name} took ${taken} damage.`,
-      changes: { party: updated },
-    })
+    queue.push(...counterattack(state, state.lead))
   } else if (hasNext) {
     queue.push(
       { text: `${target.name} fainted!` },
@@ -140,25 +156,28 @@ export function switchLead(state, index) {
   const next = state.party[index]
   if (state.menu !== 'partyMenu' || !next || isOver(state)) return state
 
-  if (index === state.lead) {
-    return { ...state, menu: 'party', cursor: index, queue: [{ text: `${next.name} is already in battle!` }] }
-  }
+  const blocked = (text) => ({ ...state, menu: 'party', cursor: index, queue: [{ text }] })
+  if (next.hp === 0) return blocked(`${next.name} has no energy left!`)
+  if (index === state.lead) return blocked(`${next.name} is already in battle!`)
 
-  const current = getLead(state)
-  const attacker = state.team[state.active]
-  const taken = Math.min(attacker.attack.damage, next.hp - 1)
-  const updated = state.party.map((pokemon, i) => (i === index ? { ...pokemon, hp: pokemon.hp - taken } : pokemon))
-  const queue = [
-    { text: `Come back, ${current.name}!`, changes: { fx: { ...state.fx, player: 'recall' } } },
-    { text: `Go, ${next.name}!`, changes: { lead: index, fx: { ...state.fx, player: 'sendout' } } },
-    { text: `${attacker.name} used ${attacker.attack.name}! ${next.name} took ${taken} damage.`, changes: { party: updated } },
-  ]
+  const sendOut = {
+    text: `Go, ${next.name}!`,
+    changes: { lead: index, fx: { ...state.fx, player: 'sendout' }, mustSwitch: false },
+  }
+  const queue = state.mustSwitch
+    ? [sendOut]
+    : [
+        { text: `Come back, ${getLead(state).name}!`, changes: { fx: { ...state.fx, player: 'recall' } } },
+        sendOut,
+        ...counterattack(state, index),
+      ]
   return applyChanges({ ...state, menu: 'main', cursor: 0, queue }, queue[0])
 }
 
 function goBack(state) {
   if (state.menu === 'partyMenu') return { ...state, menu: 'party', cursor: state.selected }
   if (state.menu === 'fight') return { ...state, menu: 'main', cursor: 0 }
+  if (state.menu === 'party' && state.mustSwitch) return state
   if (state.menu === 'party') return { ...state, menu: 'main', cursor: MAIN_OPTIONS.indexOf('PARTY') }
   if (state.menu === 'summary') return { ...state, menu: 'party', cursor: state.selected }
   if (state.menu === 'bag') return { ...state, menu: 'main', cursor: MAIN_OPTIONS.indexOf('BAG') }
@@ -186,13 +205,14 @@ function selectOption(state, index) {
 export function battleReducer(state, action) {
   if (action.type === 'advance') {
     const queue = state.queue.slice(1)
-    return applyChanges({ ...state, queue }, queue[0])
+    return openForcedParty(applyChanges({ ...state, queue }, queue[0]))
   }
   if (state.queue.length > 0) return state
 
   switch (action.type) {
     case 'cursor': {
-      const count = getMenuOptions(state.menu).length
+      const forcedParty = state.menu === 'party' && state.mustSwitch
+      const count = getMenuOptions(state.menu).length - (forcedParty ? 1 : 0)
       const { columns, rightAlignLast } = getGrid(state.menu, action.columns)
       return { ...state, cursor: moveCursor(state.cursor, action.key, count, columns, rightAlignLast) }
     }

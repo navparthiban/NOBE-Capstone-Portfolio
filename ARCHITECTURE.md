@@ -52,6 +52,8 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
   selected: 0,                         // which party Pokémon's small menu or summary is open
   team: [ ...three Recruiter Pokémon, each with its own hp and attack ],
   active: 0,                           // which Recruiter Pokémon is on the field
+  fx: { player, opponent },            // 'hidden' | 'recall' | 'sendout' | 'faint': what each side's sprite is doing
+  mustSwitch: false,                   // true after Navin's Pokémon faints, until a new one is chosen
 }
 ```
 
@@ -108,13 +110,22 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - `switchLead(state, index)` in `battle.js` is a plain function. It does nothing after victory (`isOver`) or outside the small menu. For the Pokémon already in battle it queues one message and returns to the party grid. Otherwise it queues three messages and returns to the main menu:
   1. "Come back, PORYGON!", with `fx.player = 'recall'`
   2. "Go, ALAKAZAM!", with `lead` changed and `fx.player = 'sendout'`
-  3. The Recruiter's attack on the new Pokémon, which lowers only that Pokémon's HP (never below 1)
+  3. The Recruiter's attack on the new Pokémon, which lowers only that Pokémon's HP (see the fainting section below)
 - Because `changes` apply when their message appears, the old Pokémon stays on screen through message 1, and the new one, with its name, level, and HP, only appears with message 2. HP lives in `party`, so each Pokémon keeps its own.
 - The party screen shows queued messages in its text box (for "already in battle") and advances them like the battle screen. `useMenuFocus` gets a version value so focus returns to the grid when the message is gone.
 - `createBattle()` (REMATCH) restores all HP, sets `lead` back to 0, and sets `fx` back to both sides hidden, so the intro plays again.
 
+## How fainting and forced switching work
+- `counterattack(state, targetIndex)` builds the Recruiter's attack messages for both a normal turn and a switch. The target loses HP down to 0, unless it is the last Pokémon with HP left, in which case it stops at 1 (so the visitor can't lose). If the target reaches 0, a second message "PORYGON fainted!" follows. Its `changes` set `fx.player = 'faint'` and `mustSwitch = true`, so they only apply when that message is on screen.
+- `advance` calls `openForcedParty` after each message. When the queue is empty and `mustSwitch` is set, it opens `party` with the cursor on the first Pokémon that can fight. So the faint message plays on the battle field first, then the party opens.
+- While `mustSwitch` is set: `goBack` ignores the party grid (so Escape and CANCEL do nothing), and the cursor action leaves CANCEL out of the count so the cursor can't reach it. `PartyScreen` gets `forced`, which changes the prompt and leaves out the CANCEL button. The small menu and summary work as usual.
+- `switchLead` first refuses a Pokémon with 0 HP ("has no energy left!"). When `mustSwitch` is set, it queues only "Go, ...!" and clears `mustSwitch`, with no recall and no counterattack.
+- `BattleScreen` leaves out the player's status box while `fx.player` is `'faint'`. `Sprite` plays a short sink-and-fade animation for `'faint'` (only the Pokéball is limited to recall and send-out). With reduced motion, the sprite is just hidden.
+- In the party, a Pokémon with 0 HP gets the `party__card--fainted` class (grey background) and "fainted" in its accessible name.
+- The Recruiter's attack damage is in `src/data/pokemon.js`: tune it there if the battle feels too easy or too hard.
+
 ## How the animations work
-- `state.fx` is `{ player, opponent }`, each `'hidden'`, `'recall'`, or `'sendout'`. Like HP, a value is set by the message it belongs to. The battle starts with both `'hidden'`, and `BattleScreen` leaves out a hidden side's sprite and status box. The intro's "Recruiter sent out SCREENMON!" message sets `fx.opponent = 'sendout'`, and "Go, PORYGON!" sets `fx.player = 'sendout'`, which is what makes each side appear with its own message. `takeTurn` sets `fx.opponent = 'sendout'` on "Recruiter sent out HIREMON!", so the Recruiter's replacements reuse the same animation.
+- `state.fx` is `{ player, opponent }`, each `'hidden'`, `'recall'`, `'sendout'`, or `'faint'`. Like HP, a value is set by the message it belongs to. The battle starts with both `'hidden'`, and `BattleScreen` leaves out a hidden side's sprite and status box. The intro's "Recruiter sent out SCREENMON!" message sets `fx.opponent = 'sendout'`, and "Go, PORYGON!" sets `fx.player = 'sendout'`, which is what makes each side appear with its own message. `takeTurn` sets `fx.opponent = 'sendout'` on "Recruiter sent out HIREMON!", so the Recruiter's replacements reuse the same animation.
 - `BattleScreen` passes each side's `fx` to `Sprite`, with a `key` of the Pokémon's name plus its `fx`, so a new animation always starts fresh. `Sprite` sets `data-fx`, and wraps the image in `.sprite__body` with a `.sprite__ball` (the Pokéball SVG) beside it.
 - All the motion is CSS keyframes in `BattleScreen.css` (`recall`, `ball-in`, `grow`, `ball-out`). Recall ends with the sprite scaled to 0 and stays that way until the next message replaces it.
 - The battle field stays mounted while PARTY, BAG, or a summary is open. It is only moved out of the way (`field--away`: zero size, `visibility: hidden`, `aria-hidden`, `inert`). Removing it, or using `display: none`, would restart every CSS animation when the visitor came back, so the Pokéballs would send the Pokémon out again with nothing new happening. jsdom does not run CSS animations, so the tests check that the sprites are the very same elements after a visit, and the no-replay behavior itself was checked in a real browser.
@@ -134,4 +145,5 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - `bag.test.js` checks the bag data: four unique items with the exact links.
 - `BagScreen.test.jsx` stubs `fetch` and checks each link, the new-tab attributes, the descriptions, copying the email address (including when the clipboard is refused or missing), and the resume cases: found, 404, a non-PDF answer, and a failed request.
 - The switching tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover the messages and their order, the Recruiter's attack after a switch, each Pokémon keeping its own HP, switching to the Pokémon already in battle, switching after victory, rematch, and the Recruiter's replacement not appearing before its message.
+- The fainting tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover fainting and its messages, the faint applying only with its message, the party opening by itself and refusing Escape, CANCEL and fainted Pokémon, a forced switch with no recall or attack, the last Pokémon able to fight staying at 1 HP, a full battle that still ends in victory, and rematch. In the logic tests, the `recover` helper plays through a forced switch so long battles can run to the end.
 - `PartySummary.test.jsx` checks that a Pokémon with missing optional fields still renders.
