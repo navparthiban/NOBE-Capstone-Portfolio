@@ -10,6 +10,7 @@ const MAIN_OPTIONS = ['FIGHT', 'BAG', 'PARTY', 'RUN']
 export function getMenuOptions(menu = 'main') {
   if (menu === 'fight') return [...moves.map((move) => move.name), 'BACK']
   if (menu === 'party') return [...party.map((pokemon) => pokemon.name), 'CANCEL']
+  if (menu === 'partyMenu') return ['SWITCH', 'SUMMARY', 'CANCEL']
   if (menu === 'bag') return [...bagItems.map((item) => item.name), 'CANCEL']
   if (menu === 'summary') return ['BACK']
   if (menu === 'victory') return ['REMATCH']
@@ -20,7 +21,7 @@ export const PARTY_COLUMNS = 2
 
 function getGrid(menu, columns) {
   if (menu === 'party') return { columns: columns ?? PARTY_COLUMNS, rightAlignLast: true }
-  if (menu === 'summary' || menu === 'bag') return { columns: 1, rightAlignLast: false }
+  if (menu === 'summary' || menu === 'bag' || menu === 'partyMenu') return { columns: 1, rightAlignLast: false }
   return { columns: MENU_COLUMNS, rightAlignLast: false }
 }
 
@@ -66,16 +67,29 @@ export function getPrompt(state) {
 
 export function createBattle() {
   const team = recruiterTeam.map((pokemon) => ({ ...pokemon, hp: pokemon.maxHp }))
+  const leadPokemon = party[0]
   return {
     menu: 'main',
     cursor: 0,
-    queue: [{ text: 'A Recruiter wants to battle!' }, { text: `Recruiter sent out ${team[0].name}!` }],
+    queue: [
+      { text: 'A Recruiter wants to battle!' },
+      {
+        text: `Recruiter sent out ${team[0].name}!`,
+        changes: { fx: { player: 'hidden', opponent: 'sendout' } },
+      },
+      { text: `Go, ${leadPokemon.name}!`, changes: { fx: { player: 'sendout', opponent: 'sendout' } } },
+    ],
     party: party.map((pokemon) => ({ ...pokemon, hp: pokemon.maxHp })),
     lead: 0,
     selected: 0,
     team,
     active: 0,
+    fx: { player: 'hidden', opponent: 'hidden' },
   }
+}
+
+export function isOver(state) {
+  return state.team.every((pokemon) => pokemon.hp === 0)
 }
 
 function applyChanges(state, message) {
@@ -105,7 +119,10 @@ export function takeTurn(state, moveIndex) {
   } else if (hasNext) {
     queue.push(
       { text: `${target.name} fainted!` },
-      { text: `Recruiter sent out ${team[state.active + 1].name}!`, changes: { active: state.active + 1 } },
+      {
+        text: `Recruiter sent out ${team[state.active + 1].name}!`,
+        changes: { active: state.active + 1, fx: { ...state.fx, opponent: 'sendout' } },
+      },
     )
   } else {
     queue.push(
@@ -119,7 +136,28 @@ export function takeTurn(state, moveIndex) {
   return applyChanges({ ...state, menu, cursor: 0, queue }, queue[0])
 }
 
+export function switchLead(state, index) {
+  const next = state.party[index]
+  if (state.menu !== 'partyMenu' || !next || isOver(state)) return state
+
+  if (index === state.lead) {
+    return { ...state, menu: 'party', cursor: index, queue: [{ text: `${next.name} is already in battle!` }] }
+  }
+
+  const current = getLead(state)
+  const attacker = state.team[state.active]
+  const taken = Math.min(attacker.attack.damage, next.hp - 1)
+  const updated = state.party.map((pokemon, i) => (i === index ? { ...pokemon, hp: pokemon.hp - taken } : pokemon))
+  const queue = [
+    { text: `Come back, ${current.name}!`, changes: { fx: { ...state.fx, player: 'recall' } } },
+    { text: `Go, ${next.name}!`, changes: { lead: index, fx: { ...state.fx, player: 'sendout' } } },
+    { text: `${attacker.name} used ${attacker.attack.name}! ${next.name} took ${taken} damage.`, changes: { party: updated } },
+  ]
+  return applyChanges({ ...state, menu: 'main', cursor: 0, queue }, queue[0])
+}
+
 function goBack(state) {
+  if (state.menu === 'partyMenu') return { ...state, menu: 'party', cursor: state.selected }
   if (state.menu === 'fight') return { ...state, menu: 'main', cursor: 0 }
   if (state.menu === 'party') return { ...state, menu: 'main', cursor: MAIN_OPTIONS.indexOf('PARTY') }
   if (state.menu === 'summary') return { ...state, menu: 'party', cursor: state.selected }
@@ -134,7 +172,10 @@ function selectOption(state, index) {
   if (state.menu === 'victory') return createBattle()
   if (option === 'BACK' || option === 'CANCEL') return goBack(state)
   if (state.menu === 'fight') return takeTurn(state, index)
-  if (state.menu === 'party') return { ...state, menu: 'summary', selected: index, cursor: 0 }
+  if (state.menu === 'party') return { ...state, menu: 'partyMenu', selected: index, cursor: 0 }
+  if (state.menu === 'partyMenu') {
+    return option === 'SWITCH' ? switchLead(state, state.selected) : { ...state, menu: 'summary', cursor: 0 }
+  }
   if (state.menu === 'bag') return { ...state, cursor: index }
   if (option === 'FIGHT') return { ...state, menu: 'fight', cursor: 0 }
   if (option === 'BAG') return { ...state, menu: 'bag', cursor: 0 }

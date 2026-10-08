@@ -6,7 +6,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 ## Features
 - FIGHT: skills as moves (React, TypeScript, Java, Git). Built in step 4
 - PARTY: six Pokémon, each a project or experience, with a grid and a summary screen. Built
-- Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements
+- Pokémon switching, with Pokéball recall and send-out animations shared by Navin's switches and the Recruiter's replacements. Built
 - BAG: resume and links. Built
 - Intro where the Professor asks the visitor's name, then a transition into the battle
 - Badge screen on winning, with contact info
@@ -36,6 +36,21 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - PARTY opens a DS-style grid of Navin's six Pokémon, two per row. Each card shows a sprite box, name, level, HP bar, and HP numbers like 60/60. A text box along the bottom says "Choose a Pokémon.", with a CANCEL button at the bottom right.
 - The selected card is highlighted with a blue border and background. When a phone is held upright, the grid becomes a single column.
 
+## Switching
+- PARTY, then a Pokémon, then SWITCH brings it into battle. The text box shows "Come back, PORYGON!", then "Go, ALAKAZAM!". Switching uses up the turn, so the Recruiter then attacks the new Pokémon with the usual small fixed damage (never below 1 HP). The Recruiter's Pokémon takes no damage.
+- Each Pokémon keeps its own HP, so switching away and back keeps it. The four moves are the same whichever Pokémon is active. The battle screen shows the active Pokémon's name, level, and HP numbers.
+- SWITCH on the Pokémon already in battle only shows "PORYGON is already in battle!" and returns to the party grid.
+- No switching after victory, because the victory screen only offers REMATCH. REMATCH restores every Pokémon's HP and puts the first one back in battle.
+
+## Battle start
+- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. REMATCH replays this intro.
+
+## Animations
+- Recall: the Pokémon flashes and shrinks into a Pokéball. Send-out: a Pokéball appears, opens, and the Pokémon grows into place. The Recruiter's replacements use the same send-out.
+- An animation only starts when its message appears, so a new Pokémon never shows before the text says it was sent out.
+- With reduced motion on, the animations and the Pokéball are skipped and the sprite just swaps when the "Go" message appears.
+- The Pokéball is a small pixel-art SVG in `src/assets/sprites/pokeball.svg`.
+
 ## Bag
 - BAG opens a bag screen like the games': a bag picture box, a list of four items, and a text box along the bottom that describes the highlighted item, with CANCEL at the bottom right. It fills the same game frame as every other screen.
 - Items, in `src/data/bag.js` (the RUN page can reuse them):
@@ -52,10 +67,10 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The frame scales up to fill as much of the window as possible and resizes with it.
 - Every screen (battle, move menu, party, summary) fills the same frame, so nothing changes size when switching screens.
 - The pixel font stays crisp: its size is always a multiple of 8 device pixels, and nothing is blurred by CSS scaling.
-- Selecting a Pokémon opens its summary: experience, type label, role, dates, and a short description. Any optional field that is missing is left out.
+- Selecting a Pokémon opens a small menu with SWITCH, SUMMARY, and CANCEL. SUMMARY opens its summary: experience, type label, role, dates, and a short description. Any optional field that is missing is left out.
 - Arrow keys move through the grid in all four directions and stop at the edges without wrapping. Down from the bottom row reaches CANCEL, and Up from CANCEL returns to the card above it.
-- Enter or a click selects. Escape or CANCEL goes back one screen: summary to grid, then grid to the main menu.
-- The summary screen has an options list (only BACK for now), so SWITCH can be added when switching is built.
+- Enter or a click selects. Escape or CANCEL goes back one screen: small menu to grid, summary to grid, then grid to the main menu. While the small menu is open, clicking the other cards does nothing.
+- The summary screen has an options list (only BACK for now).
 - The lineup is in `src/data/party.js`, which the RUN page can reuse later:
   - PORYGON: ClearSign, legal contract simplifier web app
   - ELECTRODE: SCARF research on inherited arrhythmias
@@ -75,7 +90,7 @@ Done: local project setup, GitHub repo and CI/CD pipeline, battle screen, battle
 Next:
 1. PARTY summaries (done)
 2. BAG (done)
-3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements
+3. Pokémon switching plus Pokéball recall and send-out animations, shared by my switches and the Recruiter's replacements (done)
 4. Intro with the Professor asking the visitor's name, the battle transition, and the badge screen
 5. RUN as a plain, separate portfolio page, designed after the game is done
 
@@ -84,6 +99,8 @@ Next:
 - The GitHub and LinkedIn URLs in `src/data/bag.js` should be double-checked
 - Party descriptions, roles, type labels, levels, and HP are starter text for Navin to rewrite, and no dates are filled in yet
 - Pixel art and sprites not chosen
+- A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
+- While the small menu is open on the party screen, it covers part of the bottom-right card
 - Intro and badge screens are planned for step 4 and not built yet
 - Screen-reader behavior of the pixel-style UI is untested
 - Winning only shows a victory message and REMATCH; the badge screen is not built yet

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FrameContext } from '../hooks/useFrame.js'
 import BattleScreen from './BattleScreen.jsx'
@@ -23,6 +23,7 @@ function nextMessage() {
 }
 
 function skipIntro() {
+  nextMessage()
   nextMessage()
   nextMessage()
 }
@@ -57,9 +58,33 @@ describe('BattleScreen intro', () => {
     nextMessage()
     expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
     nextMessage()
+    expect(status()).toHaveTextContent('Go, PORYGON!')
+    expect(hasMenu()).toBe(false)
+    nextMessage()
     expect(hasMenu()).toBe(true)
     expect(status()).toHaveTextContent('What will PORYGON do?')
     expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
+  })
+
+  it('keeps each side off the field until its own send-out message', () => {
+    const { container } = render(<BattleScreen />)
+    const sprite = (name) => screen.queryByRole('img', { name: `${name} sprite` })
+    const fx = (name) => sprite(name).closest('.sprite').dataset.fx
+    expect(sprite('SCREENMON')).not.toBeInTheDocument()
+    expect(sprite('PORYGON')).not.toBeInTheDocument()
+    expect(container.querySelector('.status')).not.toBeInTheDocument()
+
+    nextMessage()
+    expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
+    expect(fx('SCREENMON')).toBe('sendout')
+    expect(container.querySelector('.status--opponent')).toHaveTextContent('SCREENMON')
+    expect(sprite('PORYGON')).not.toBeInTheDocument()
+    expect(container.querySelector('.status--player')).not.toBeInTheDocument()
+
+    nextMessage()
+    expect(status()).toHaveTextContent('Go, PORYGON!')
+    expect(fx('PORYGON')).toBe('sendout')
+    expect(container.querySelector('.status--player')).toHaveTextContent('PORYGON')
   })
 
   it('types the message out, and a click finishes it before advancing', () => {
@@ -229,6 +254,8 @@ describe('BattleScreen battle', () => {
     expect(screen.getByRole('button', { name: 'REMATCH' })).toHaveFocus()
     clickOption('REMATCH')
     expect(status()).toHaveTextContent('A Recruiter wants to battle!')
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    skipIntro()
     expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute(
       'aria-valuenow',
       '40',
@@ -255,8 +282,9 @@ describe('BattleScreen party', () => {
       expect(screen.getByRole('button', { name: new RegExp(`^${name}, level `) })).toBeInTheDocument()
       expect(screen.getByRole('progressbar', { name: `${name} HP` })).toBeInTheDocument()
     }
-    expect(screen.getByText('60/60')).toBeInTheDocument()
-    expect(screen.getByText('90/90')).toBeInTheDocument()
+    const partyScreen = within(screen.getByRole('region', { name: 'Party' }))
+    expect(partyScreen.getByText('60/60')).toBeInTheDocument()
+    expect(partyScreen.getByText('90/90')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^PORYGON/ })).toHaveFocus()
   })
 
@@ -330,6 +358,10 @@ describe('BattleScreen party', () => {
     press('ArrowDown')
     expect(screen.getByRole('button', { name: /^ALAKAZAM/ })).toHaveFocus()
     fireEvent.click(document.activeElement)
+    expect(screen.getByRole('button', { name: 'SWITCH' })).toHaveFocus()
+    press('ArrowDown')
+    expect(screen.getByRole('button', { name: 'SUMMARY' })).toHaveFocus()
+    fireEvent.click(document.activeElement)
     expect(screen.getByRole('heading', { name: /ALAKAZAM/ })).toBeInTheDocument()
     expect(screen.getByText('Mathnasium')).toBeInTheDocument()
     expect(screen.getByText('Math Instructor')).toBeInTheDocument()
@@ -340,6 +372,7 @@ describe('BattleScreen party', () => {
   it('opens the matching summary with a click', () => {
     openParty()
     clickOption(/^CHANSEY/)
+    clickOption('SUMMARY')
     expect(screen.getByRole('heading', { name: /CHANSEY/ })).toBeInTheDocument()
     expect(screen.getByText('Edward Hospital')).toBeInTheDocument()
   })
@@ -348,6 +381,7 @@ describe('BattleScreen party', () => {
     openParty()
     press('ArrowRight')
     fireEvent.click(document.activeElement)
+    clickOption('SUMMARY')
     expect(screen.getByRole('heading', { name: /ELECTRODE/ })).toBeInTheDocument()
 
     press('Escape')
@@ -361,6 +395,7 @@ describe('BattleScreen party', () => {
   it('goes back with the BACK and CANCEL buttons', () => {
     openParty()
     clickOption(/^MEOWTH/)
+    clickOption('SUMMARY')
     clickOption('BACK')
     expect(screen.getByRole('button', { name: /^MEOWTH/ })).toHaveFocus()
     clickOption('CANCEL')
@@ -397,5 +432,196 @@ describe('BattleScreen party', () => {
     clickOption('PARTY')
     expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute('aria-valuenow', '56')
     expect(screen.getByRole('progressbar', { name: 'MEOWTH HP' })).toHaveAttribute('aria-valuenow', '50')
+  })
+})
+
+describe('BattleScreen field', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', () => new Promise(() => {}))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function fieldSprites(container) {
+    return [container.querySelector('.sprite--player'), container.querySelector('.sprite--opponent')]
+  }
+
+  it('keeps the same sprites, so no send-out replays, after visiting PARTY and coming back', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    const before = fieldSprites(container)
+    clickOption('PARTY')
+    expect(screen.queryByRole('img', { name: 'SCREENMON sprite' })).not.toBeInTheDocument()
+    clickOption('CANCEL')
+    const after = fieldSprites(container)
+    expect(after[0]).toBe(before[0])
+    expect(after[1]).toBe(before[1])
+    clickOption('PARTY')
+    clickOption(/^ELECTRODE/)
+    clickOption('SUMMARY')
+    press('Escape')
+    press('Escape')
+    press('Escape')
+    expect(fieldSprites(container)[0]).toBe(before[0])
+    expect(fieldSprites(container)[1]).toBe(before[1])
+  })
+
+  it('keeps the same sprites after visiting BAG and coming back', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    const before = fieldSprites(container)
+    clickOption('BAG')
+    press('Escape')
+    expect(fieldSprites(container)[0]).toBe(before[0])
+    expect(fieldSprites(container)[1]).toBe(before[1])
+    expect(hasMenu()).toBe(true)
+  })
+
+  it('hides the field while another screen is open', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    const field = container.querySelector('.field')
+    expect(field).not.toHaveAttribute('aria-hidden', 'true')
+    clickOption('PARTY')
+    expect(field).toHaveAttribute('aria-hidden', 'true')
+    expect(field).toHaveClass('field--away')
+    clickOption('CANCEL')
+    expect(field).not.toHaveAttribute('aria-hidden', 'true')
+    expect(field).not.toHaveClass('field--away')
+  })
+
+  it('does not replay the send-out when coming back after a switch either', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    clickOption('PARTY')
+    clickOption(/^ALAKAZAM/)
+    clickOption('SWITCH')
+    while (!hasMenu()) nextMessage()
+    const before = fieldSprites(container)
+    clickOption('BAG')
+    press('Escape')
+    expect(fieldSprites(container)[0]).toBe(before[0])
+  })
+})
+
+describe('BattleScreen switching', () => {
+  function openPartyMenu(name) {
+    render(<BattleScreen />)
+    skipIntro()
+    clickOption('PARTY')
+    clickOption(name)
+  }
+
+  const sprite = (name) => screen.queryByRole('img', { name: `${name} sprite` })
+  const fx = (name) => sprite(name)?.closest('.sprite').dataset.fx
+  const playerStatus = (container) => container.querySelector('.status--player')
+
+  it('opens a small menu with SWITCH, SUMMARY and CANCEL, and asks what to do', () => {
+    openPartyMenu(/^ALAKAZAM/)
+    for (const name of ['SWITCH', 'SUMMARY', 'CANCEL']) {
+      expect(screen.getAllByRole('button', { name })).not.toHaveLength(0)
+    }
+    expect(screen.getByRole('button', { name: 'SWITCH' })).toHaveFocus()
+    expect(status()).toHaveTextContent('Do what with ALAKAZAM?')
+  })
+
+  it('goes back to the grid with CANCEL or Escape, on the same card', () => {
+    openPartyMenu(/^ALAKAZAM/)
+    press('Escape')
+    expect(screen.getByRole('button', { name: /^ALAKAZAM/ })).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'SWITCH' })).not.toBeInTheDocument()
+    fireEvent.click(document.activeElement)
+    fireEvent.click(screen.getAllByRole('button', { name: 'CANCEL' })[0])
+    expect(screen.getByRole('button', { name: /^ALAKAZAM/ })).toHaveFocus()
+  })
+
+  it('ignores clicks on the other cards while the small menu is open', () => {
+    openPartyMenu(/^ALAKAZAM/)
+    fireEvent.click(screen.getByRole('button', { name: /^ELECTRODE/ }))
+    expect(screen.getByRole('button', { name: 'SWITCH' })).toBeInTheDocument()
+    expect(status()).toHaveTextContent('Do what with ALAKAZAM?')
+  })
+
+  it('recalls the old Pokémon, then sends out the new one, then the Recruiter attacks', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    clickOption('PARTY')
+    clickOption(/^ALAKAZAM/)
+    clickOption('SWITCH')
+
+    expect(status()).toHaveTextContent('Come back, PORYGON!')
+    expect(fx('PORYGON')).toBe('recall')
+    expect(sprite('ALAKAZAM')).not.toBeInTheDocument()
+    expect(playerStatus(container)).toHaveTextContent('PORYGON')
+
+    nextMessage()
+    expect(status()).toHaveTextContent('Go, ALAKAZAM!')
+    expect(fx('ALAKAZAM')).toBe('sendout')
+    expect(sprite('PORYGON')).not.toBeInTheDocument()
+    expect(playerStatus(container)).toHaveTextContent('ALAKAZAM')
+    expect(playerStatus(container)).toHaveTextContent('Lv26')
+    expect(playerStatus(container)).toHaveTextContent('55/55')
+
+    nextMessage()
+    expect(status()).toHaveTextContent('SCREENMON used Interview! ALAKAZAM took 4 damage.')
+    expect(playerStatus(container)).toHaveTextContent('51/55')
+
+    nextMessage()
+    expect(hasMenu()).toBe(true)
+    expect(status()).toHaveTextContent('What will ALAKAZAM do?')
+    expect(screen.getByRole('button', { name: 'FIGHT' })).toHaveFocus()
+  })
+
+  it('keeps each Pokémon\'s HP when switching away and back', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    playReactTurn()
+    expect(playerStatus(container)).toHaveTextContent('56/60')
+    clickOption('PARTY')
+    clickOption(/^ALAKAZAM/)
+    clickOption('SWITCH')
+    while (!hasMenu()) nextMessage()
+    clickOption('PARTY')
+    clickOption(/^PORYGON/)
+    clickOption('SWITCH')
+    while (!hasMenu()) nextMessage()
+    expect(playerStatus(container)).toHaveTextContent('PORYGON')
+    expect(playerStatus(container)).toHaveTextContent('52/60')
+  })
+
+  it('only shows a message when switching to the Pokémon already in battle', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    clickOption('PARTY')
+    clickOption(/^PORYGON/)
+    clickOption('SWITCH')
+    expect(status()).toHaveTextContent('PORYGON is already in battle!')
+    expect(screen.getByRole('button', { name: 'Next message' })).toHaveFocus()
+    nextMessage()
+    expect(screen.getByRole('button', { name: /^PORYGON/ })).toHaveFocus()
+    expect(status()).toHaveTextContent('Choose a Pokémon.')
+    fireEvent.click(screen.getByRole('button', { name: 'CANCEL' }))
+    expect(playerStatus(container)).toHaveTextContent('PORYGON')
+    expect(playerStatus(container)).toHaveTextContent('60/60')
+    expect(hasMenu()).toBe(true)
+  })
+
+  it("does not show the Recruiter's next Pokémon until the send-out message", () => {
+    render(<BattleScreen />)
+    skipIntro()
+    playReactTurn()
+    clickOption('FIGHT')
+    clickOption('React')
+    expect(sprite('SCREENMON')).toBeInTheDocument()
+    expect(sprite('HIREMON')).not.toBeInTheDocument()
+    nextMessage()
+    expect(status()).toHaveTextContent('SCREENMON fainted!')
+    expect(sprite('HIREMON')).not.toBeInTheDocument()
+    nextMessage()
+    expect(status()).toHaveTextContent('Recruiter sent out HIREMON!')
+    expect(sprite('SCREENMON')).not.toBeInTheDocument()
+    expect(fx('HIREMON')).toBe('sendout')
   })
 })
