@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { introLines, professor } from '../data/intro.js'
 import { createIntro, getIntroLine, introReducer } from '../logic/intro.js'
+import Platform from './Platform.jsx'
 import Sprite from './Sprite.jsx'
 import TextBox from './TextBox.jsx'
 
@@ -26,6 +27,7 @@ export default function IntroScreen({ onDone, active = true }) {
     <main className="battle">
       <h1 className="visually-hidden">Navin's Portfolio</h1>
       <section className="field" aria-label="Professor">
+        <Platform side="professor" />
         <Sprite name={professor.name} src={professor.sprite} side="professor" />
       </section>
       <section className="panel panel--full">

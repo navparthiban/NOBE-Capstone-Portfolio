@@ -52,10 +52,10 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 
 ## Intro
 - The site opens on a Professor intro, then plays the battle transition (see below) and goes into the battle. The trainer is always NAVIN, so the visitor is not asked for a name.
-- The screen is a placeholder box for the Professor above the same typewriter text box the battle uses, in the same scaled frame. The Professor says 12 lines, one at a time. Enter or a click finishes a line that is still typing, and Enter or a click on a finished line goes to the next one. After "Good luck!" the battle starts.
+- The screen shows the Professor's sprite standing on a grass pad, above the same typewriter text box the battle uses, in the same scaled frame. The Professor says 12 lines, one at a time. Enter or a click finishes a line that is still typing, and Enter or a click on a finished line goes to the next one. After "Good luck!" the battle starts.
 - SKIP, in the top-right corner, and the Escape key both jump straight to the battle from any line.
 - The lines are in `src/data/intro.js`, so they are easy to edit. A line must be at most 100 characters (a test checks this). That fits the text box in both orientations, even on a small phone. A longer line should be split into two entries.
-- The Professor's image is the `sprite` field in the same file. It is `null` for now, which shows a placeholder box.
+- The Professor's image is the `sprite` field in the same file. It is `professor-oak.png` in `src/assets/sprites/`, shown on a grass pad like the battle sprites.
 
 ## Battle transition
 - After the last Professor line, or after SKIP or Escape, black bars sweep across the game frame, one after another from alternating sides, until the screen is black. Then a quick white flash plays and the battle opens. It takes about 1.5 seconds.
@@ -143,7 +143,6 @@ Next:
 - The animated sprite GIFs keep playing with reduced motion on (they don't pause yet)
 - A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
 - While the small menu is open on the party screen, it covers part of the bottom-right card
-- The Professor is a placeholder box
 - Screen-reader behavior of the pixel-style UI is untested
 - The badge image and the badge text (`src/data/badge.js`) are placeholders
 - A win is not remembered across a reload, so reloading the portfolio after winning shows "Play the game" and starts from the intro
