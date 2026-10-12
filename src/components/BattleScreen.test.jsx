@@ -752,6 +752,7 @@ describe('BattleScreen fainting', () => {
           atFaint = {
             fx: sprite('PORYGON')?.closest('.sprite').dataset.fx,
             statusBox: document.querySelector('.status--player') !== null,
+            platforms: document.querySelectorAll('.platform').length,
           }
         }
         nextMessage()
@@ -766,11 +767,22 @@ describe('BattleScreen fainting', () => {
     skipIntro()
     const { seen, atFaint } = playUntilForced()
     expect(seen.at(-1)).toContain('PORYGON fainted!')
-    expect(atFaint).toEqual({ fx: 'faint', statusBox: false })
+    expect(atFaint).toMatchObject({ fx: 'faint', statusBox: false })
     expect(status()).toHaveTextContent('Bring out which Pokémon?')
     expect(screen.queryByRole('button', { name: 'CANCEL' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^PORYGON, level 18, 0 of 60 HP, fainted/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^ELECTRODE/ })).toHaveFocus()
+  })
+
+  it('keeps both platforms on the field while a Pokémon faints', () => {
+    const { container } = render(<BattleScreen />)
+    expect(container.querySelector('.platform--opponent')).toBeInTheDocument()
+    expect(container.querySelector('.platform--player')).toBeInTheDocument()
+    skipIntro()
+    const { atFaint } = playUntilForced()
+    expect(atFaint.platforms).toBe(2)
+    expect(container.querySelector('.platform--opponent')).toBeInTheDocument()
+    expect(container.querySelector('.platform--player')).toBeInTheDocument()
   })
 
   it('does not let Escape leave the forced party', () => {

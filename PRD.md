@@ -66,10 +66,11 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The timing is in `src/logic/transition.js`.
 
 ## Battle start
-- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out WATCHOG!" sends out WATCHOG, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. Play again replays this intro.
+- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out WATCHOG!" sends out WATCHOG, and "Go, PORYGON!" sends out Navin's Pokémon. The field shows a grass platform under each side from the start; the sprites stand on them. Each side, with its status box, only appears with its own message, using the same send-out animation. Play again replays this intro.
 
 ## Animations
 - Recall: the Pokémon flashes and shrinks into a Pokéball. Send-out: a Pokéball appears, opens, and the Pokémon grows into place. The Recruiter's replacements use the same send-out.
+- The platforms never move or fade: only the sprites animate.
 - An animation only starts when its message appears, so a new Pokémon never shows before the text says it was sent out.
 - With reduced motion on, the animations and the Pokéball are skipped and the sprite just swaps when the "Go" message appears.
 - The Pokéball is a small pixel-art SVG in `src/assets/sprites/pokeball.svg`.
