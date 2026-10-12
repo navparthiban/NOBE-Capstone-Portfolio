@@ -6,6 +6,7 @@ import BagScreen from './BagScreen.jsx'
 import BattleMenu from './BattleMenu.jsx'
 import PartyScreen from './PartyScreen.jsx'
 import PartySummary from './PartySummary.jsx'
+import Platform from './Platform.jsx'
 import PokemonStatus from './PokemonStatus.jsx'
 import Sprite from './Sprite.jsx'
 import TextBox from './TextBox.jsx'
@@ -45,8 +46,8 @@ export default function BattleScreen({ onRun = () => {}, onWin = () => {} }) {
     <main className="battle">
       <h1 className="visually-hidden">Navin's Portfolio</h1>
       <section className={onField ? 'field' : 'field field--away'} aria-hidden={!onField} inert={!onField}>
-        <div className="platform platform--opponent" aria-hidden="true" />
-        <div className="platform platform--player" aria-hidden="true" />
+        <Platform side="opponent" />
+        <Platform side="player" />
         {opponentOut && <PokemonStatus key={opponent.name} pokemon={opponent} side="opponent" />}
         {opponentOut && (
           <Sprite
