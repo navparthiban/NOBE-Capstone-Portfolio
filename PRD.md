@@ -24,7 +24,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 ## Battle rules
 - The Recruiter has three Pokémon, sent out one at a time. Navin's Pokémon starts at full HP.
 - Each move deals fixed damage (no randomness). Move names, damage, and messages are in `src/data/moves.js`; the Pokémon are in `src/data/pokemon.js`.
-- After each move, the Recruiter's Pokémon attacks back for fixed damage, unless it just fainted: SCREENMON 10, HIREMON 12, OFFERMON 14.
+- After each move, the Recruiter's Pokémon attacks back for fixed damage, unless it just fainted: WATCHOG 10, HYPNO 12, BISHARP 14.
 - Navin's Pokémon can faint, but the last one still able to fight never drops below 1 HP, so the visitor cannot lose. Opponent HP never drops below 0.
 - When a Recruiter Pokémon faints, the next one is sent out with a message.
 - When all three faint, the battle shows the victory messages and the badge dialogue, then the badge screen (see below). There is no rematch button: "Play again" on the plain portfolio restarts the battle.
@@ -66,7 +66,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The timing is in `src/logic/transition.js`.
 
 ## Battle start
-- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out SCREENMON!" sends out SCREENMON, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. Play again replays this intro.
+- The battle opens with an empty field: no sprites and no status boxes. "A Recruiter wants to battle!" shows first, then "Recruiter sent out WATCHOG!" sends out WATCHOG, and "Go, PORYGON!" sends out Navin's Pokémon. Each side, with its status box, only appears with its own message, using the same send-out animation. Play again replays this intro.
 
 ## Animations
 - Recall: the Pokémon flashes and shrinks into a Pokéball. Send-out: a Pokéball appears, opens, and the Pokémon grows into place. The Recruiter's replacements use the same send-out.
@@ -139,8 +139,7 @@ Next:
 - No real content yet (skills). `public/resume.pdf` has not been added, so RESUME shows the "not available yet" message until it is
 - The GitHub and LinkedIn URLs in `src/data/bag.js` should be double-checked
 - Party descriptions, roles, type labels, levels, and HP are starter text for Navin to rewrite, and no dates are filled in yet
-- The Recruiter's team sprites are placeholders
-- The animated back GIFs keep playing with reduced motion on (they don't pause yet)
+- The animated sprite GIFs keep playing with reduced motion on (they don't pause yet)
 - A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
 - While the small menu is open on the party screen, it covers part of the bottom-right card
 - The Professor is a placeholder box
@@ -148,7 +147,7 @@ Next:
 - The badge image and the badge text (`src/data/badge.js`) are placeholders
 - A win is not remembered across a reload, so reloading the portfolio after winning shows "Play the game" and starts from the intro
 - The intro text is a first draft for Navin to edit, and it plays again on every page load
-- Move damage and Pokémon names are placeholders
+- Move damage values are placeholders
 - The PARTY descriptions still need to be rewritten in Navin's own words
 - The About text on the plain portfolio is starter text for Navin to rewrite in `src/data/profile.js`, and the name there ("Navin Parthiban") should be confirmed
 - The plain portfolio loads its fonts (Atkinson Hyperlegible and Press Start 2P) from Google Fonts, so offline it falls back to system fonts

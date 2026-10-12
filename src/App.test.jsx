@@ -164,7 +164,7 @@ describe('App RUN and the plain portfolio', () => {
     const sprites = [container.querySelector('.sprite--player'), container.querySelector('.sprite--opponent')]
     expect(playerStatus()).toContain('ALAKAZAM')
     expect(playerStatus()).toContain('45/55')
-    expect(bar('SCREENMON')).toHaveAttribute('aria-valuenow', '20')
+    expect(bar('WATCHOG')).toHaveAttribute('aria-valuenow', '20')
 
     clickOption('RUN')
     nextMessage()
@@ -177,7 +177,7 @@ describe('App RUN and the plain portfolio', () => {
     expect(status()).toHaveTextContent('What will ALAKAZAM do?')
     expect(playerStatus()).toContain('ALAKAZAM')
     expect(playerStatus()).toContain('45/55')
-    expect(bar('SCREENMON')).toHaveAttribute('aria-valuenow', '20')
+    expect(bar('WATCHOG')).toHaveAttribute('aria-valuenow', '20')
     expect(container.querySelector('.sprite--player')).toBe(sprites[0])
     expect(container.querySelector('.sprite--opponent')).toBe(sprites[1])
     expect(container.querySelector('.stage')).not.toHaveClass('stage--away')
@@ -310,7 +310,7 @@ describe('App hash URL', () => {
     goToHash('#portfolio')
     expect(portfolioHeading()).toBeInTheDocument()
     goToHash('')
-    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute('aria-valuenow', '20')
+    expect(screen.getByRole('progressbar', { name: 'WATCHOG HP' })).toHaveAttribute('aria-valuenow', '20')
   })
 
   it('does not let Escape skip the intro while the portfolio is showing', () => {
@@ -372,7 +372,7 @@ describe('App after winning', () => {
     nextMessage()
     nextMessage()
     nextMessage()
-    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute('aria-valuenow', String(recruiterTeam[0].maxHp))
+    expect(screen.getByRole('progressbar', { name: 'WATCHOG HP' })).toHaveAttribute('aria-valuenow', String(recruiterTeam[0].maxHp))
     expect(screen.getByRole('progressbar', { name: 'PORYGON HP' })).toHaveAttribute('aria-valuenow', String(party[0].maxHp))
     clickOption('PARTY')
     for (const pokemon of party) {
@@ -426,7 +426,7 @@ describe('App after winning', () => {
     expect(screen.getByRole('button', { name: 'Back to the game' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Back to the game' }))
     tick(100)
-    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute('aria-valuenow', '20')
+    expect(screen.getByRole('progressbar', { name: 'WATCHOG HP' })).toHaveAttribute('aria-valuenow', '20')
   })
 })
 

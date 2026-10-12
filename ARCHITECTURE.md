@@ -53,7 +53,7 @@ src/
     intro.js           the Professor and the lines of dialogue
     moves.js           Navin's four moves: name, damage, message
     party.js           Navin's six Pokémon (projects and experiences)
-    pokemon.js         the Recruiter's team of three
+    pokemon.js         the Recruiter's team of three (WATCHOG, HYPNO, BISHARP)
     profile.js         the portfolio's name, tagline, and About text
     party.test.js
   test/setup.js        test setup (jest-dom matchers, cleanup)
@@ -85,7 +85,7 @@ All rules live in `src/logic/battle.js` as plain functions. The whole battle is 
   - `advance`: removes the message on screen from the queue, then applies the changes of the next message.
 - While `queue` has messages, the reducer ignores everything except `advance`, so the visitor reads each message before acting.
 - `takeTurn(state, moveIndex)` plays one turn: the move hits (opponent HP stops at 0), then either the opponent faints (next one is sent out, or the badge screen if it was the last) or it attacks back (the lead's HP stops at 1). It queues a message for each step. After victory it does nothing.
-- Each queued message carries the `changes` that go with it: the move message lowers the opponent's HP, the counterattack message lowers the lead's HP in `party`, and "Recruiter sent out HIREMON!" switches `active`. A change is applied when its message comes on screen, so the HP bars and the Pokémon on the field always match what the text box says. By the time the queue is empty, the state is the same as if everything had happened at once.
+- Each queued message carries the `changes` that go with it: the move message lowers the opponent's HP, the counterattack message lowers the lead's HP in `party`, and "Recruiter sent out HYPNO!" switches `active`. A change is applied when its message comes on screen, so the HP bars and the Pokémon on the field always match what the text box says. By the time the queue is empty, the state is the same as if everything had happened at once.
 
 ## How the components use it
 ```
@@ -176,7 +176,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - The Recruiter's attack damage is in `src/data/pokemon.js`: tune it there if the battle feels too easy or too hard.
 
 ## How the animations work
-- `state.fx` is `{ player, opponent }`, each `'hidden'`, `'recall'`, `'sendout'`, or `'faint'`. Like HP, a value is set by the message it belongs to. The battle starts with both `'hidden'`, and `BattleScreen` leaves out a hidden side's sprite and status box. The intro's "Recruiter sent out SCREENMON!" message sets `fx.opponent = 'sendout'`, and "Go, PORYGON!" sets `fx.player = 'sendout'`, which is what makes each side appear with its own message. `takeTurn` sets `fx.opponent = 'sendout'` on "Recruiter sent out HIREMON!", so the Recruiter's replacements reuse the same animation.
+- `state.fx` is `{ player, opponent }`, each `'hidden'`, `'recall'`, `'sendout'`, or `'faint'`. Like HP, a value is set by the message it belongs to. The battle starts with both `'hidden'`, and `BattleScreen` leaves out a hidden side's sprite and status box. The intro's "Recruiter sent out WATCHOG!" message sets `fx.opponent = 'sendout'`, and "Go, PORYGON!" sets `fx.player = 'sendout'`, which is what makes each side appear with its own message. `takeTurn` sets `fx.opponent = 'sendout'` on "Recruiter sent out HYPNO!", so the Recruiter's replacements reuse the same animation.
 - `BattleScreen` passes each side's `fx` to `Sprite`, with a `key` of the Pokémon's name plus its `fx`, so a new animation always starts fresh. `Sprite` sets `data-fx`, and wraps the image in `.sprite__body` with a `.sprite__ball` (the Pokéball SVG) beside it.
 - All the motion is CSS keyframes in `BattleScreen.css` (`recall`, `ball-in`, `grow`, `ball-out`). Recall ends with the sprite scaled to 0 and stays that way until the next message replaces it.
 - The battle field stays mounted while PARTY, BAG, or a summary is open. It is only moved out of the way (`field--away`: zero size, `visibility: hidden`, `aria-hidden`, `inert`). Removing it, or using `display: none`, would restart every CSS animation when the visitor came back, so the Pokéballs would send the Pokémon out again with nothing new happening. jsdom does not run CSS animations, so the tests check that the sprites are the very same elements after a visit, and the no-replay behavior itself was checked in a real browser.
@@ -195,6 +195,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 ## Testing
 - `battle.test.js` tests the logic directly: damage, fainting and sending out the next Pokémon, victory, HP limits, no moves after victory, the badge menu, menus, cursor edges, and the party screens.
 - `party.test.js` checks that the party data has six unique Pokémon with the fields the screens need.
+- `pokemon.test.js` checks that the Recruiter's team is WATCHOG, HYPNO, BISHARP in order, each with a sprite.
 - `BattleScreen.test.jsx` plays the real screen with fake timers: the intro, typing and advancing, menus with arrows and Escape, a full battle to the badge screen, and the party list and summaries.
 - `bag.test.js` checks the bag data: four unique items with the exact links.
 - `BagScreen.test.jsx` stubs `fetch` and checks each link, the new-tab attributes, the descriptions, copying the email address (including when the clipboard is refused or missing), and the resume cases: found, 404, a non-PDF answer, and a failed request.

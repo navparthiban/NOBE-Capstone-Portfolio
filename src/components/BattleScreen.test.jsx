@@ -84,7 +84,7 @@ describe('BattleScreen intro', () => {
     expect(status()).toHaveTextContent('A Recruiter wants to battle!')
     expect(hasMenu()).toBe(false)
     nextMessage()
-    expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
+    expect(status()).toHaveTextContent('Recruiter sent out WATCHOG!')
     nextMessage()
     expect(status()).toHaveTextContent('Go, PORYGON!')
     expect(hasMenu()).toBe(false)
@@ -98,14 +98,14 @@ describe('BattleScreen intro', () => {
     const { container } = render(<BattleScreen />)
     const sprite = (name) => screen.queryByRole('img', { name: `${name} sprite` })
     const fx = (name) => sprite(name).closest('.sprite').dataset.fx
-    expect(sprite('SCREENMON')).not.toBeInTheDocument()
+    expect(sprite('WATCHOG')).not.toBeInTheDocument()
     expect(sprite('PORYGON')).not.toBeInTheDocument()
     expect(container.querySelector('.status')).not.toBeInTheDocument()
 
     nextMessage()
-    expect(status()).toHaveTextContent('Recruiter sent out SCREENMON!')
-    expect(fx('SCREENMON')).toBe('sendout')
-    expect(container.querySelector('.status--opponent')).toHaveTextContent('SCREENMON')
+    expect(status()).toHaveTextContent('Recruiter sent out WATCHOG!')
+    expect(fx('WATCHOG')).toBe('sendout')
+    expect(container.querySelector('.status--opponent')).toHaveTextContent('WATCHOG')
     expect(sprite('PORYGON')).not.toBeInTheDocument()
     expect(container.querySelector('.status--player')).not.toBeInTheDocument()
 
@@ -115,14 +115,16 @@ describe('BattleScreen intro', () => {
     expect(container.querySelector('.status--player')).toHaveTextContent('PORYGON')
   })
 
-  it('shows the animated back sprite for the player and a placeholder for the Recruiter', () => {
+  it('shows the animated back sprite for the player and the animated front sprite for the Recruiter', () => {
     const { container } = render(<BattleScreen />)
     nextMessage()
     nextMessage()
     const player = screen.getByRole('img', { name: 'PORYGON sprite' })
     expect(player.tagName).toBe('IMG')
     expect(player.getAttribute('src')).toContain('animated-back-porygon')
-    expect(container.querySelector('.sprite--opponent .sprite__placeholder')).toBeInTheDocument()
+    const opponent = screen.getByRole('img', { name: 'WATCHOG sprite' })
+    expect(opponent.getAttribute('src')).toContain('animated-front-watchog')
+    expect(container.querySelector('.sprite__placeholder')).not.toBeInTheDocument()
   })
 
   it('types the message out, and a click finishes it before advancing', () => {
@@ -281,7 +283,7 @@ describe('BattleScreen battle', () => {
     clickOption('FIGHT')
     clickOption('React')
     expect(status()).toHaveTextContent('Navin used React! It built the frontend.')
-    expect(screen.getByRole('progressbar', { name: 'SCREENMON HP' })).toHaveAttribute(
+    expect(screen.getByRole('progressbar', { name: 'WATCHOG HP' })).toHaveAttribute(
       'aria-valuenow',
       '20',
     )
@@ -307,15 +309,15 @@ describe('BattleScreen battle', () => {
     const bar = (name) => screen.queryByRole('progressbar', { name: `${name} HP` })
 
     expect(status()).toHaveTextContent('Navin used React!')
-    expect(bar('SCREENMON')).toHaveAttribute('aria-valuenow', '0')
+    expect(bar('WATCHOG')).toHaveAttribute('aria-valuenow', '0')
     nextMessage()
-    expect(status()).toHaveTextContent('SCREENMON fainted!')
-    expect(bar('SCREENMON')).toBeInTheDocument()
-    expect(bar('HIREMON')).not.toBeInTheDocument()
+    expect(status()).toHaveTextContent('WATCHOG fainted!')
+    expect(bar('WATCHOG')).toBeInTheDocument()
+    expect(bar('HYPNO')).not.toBeInTheDocument()
     nextMessage()
-    expect(status()).toHaveTextContent('Recruiter sent out HIREMON!')
-    expect(bar('HIREMON')).toHaveAttribute('aria-valuenow', '50')
-    expect(bar('SCREENMON')).not.toBeInTheDocument()
+    expect(status()).toHaveTextContent('Recruiter sent out HYPNO!')
+    expect(bar('HYPNO')).toHaveAttribute('aria-valuenow', '50')
+    expect(bar('WATCHOG')).not.toBeInTheDocument()
   })
 
   it('plays the badge lines after the victory messages, then shows the badge screen', () => {
@@ -561,7 +563,7 @@ describe('BattleScreen field', () => {
     skipIntro()
     const before = fieldSprites(container)
     clickOption('PARTY')
-    expect(screen.queryByRole('img', { name: 'SCREENMON sprite' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: 'WATCHOG sprite' })).not.toBeInTheDocument()
     clickOption('CANCEL')
     const after = fieldSprites(container)
     expect(after[0]).toBe(before[0])
@@ -673,7 +675,7 @@ describe('BattleScreen switching', () => {
     expect(playerStatus(container)).toHaveTextContent('55/55')
 
     nextMessage()
-    expect(status()).toHaveTextContent('SCREENMON used Interview! ALAKAZAM took 10 damage.')
+    expect(status()).toHaveTextContent('WATCHOG used Interview! ALAKAZAM took 10 damage.')
     expect(playerStatus(container)).toHaveTextContent('45/55')
 
     nextMessage()
@@ -722,15 +724,15 @@ describe('BattleScreen switching', () => {
     playReactTurn()
     clickOption('FIGHT')
     clickOption('React')
-    expect(sprite('SCREENMON')).toBeInTheDocument()
-    expect(sprite('HIREMON')).not.toBeInTheDocument()
+    expect(sprite('WATCHOG')).toBeInTheDocument()
+    expect(sprite('HYPNO')).not.toBeInTheDocument()
     nextMessage()
-    expect(status()).toHaveTextContent('SCREENMON fainted!')
-    expect(sprite('HIREMON')).not.toBeInTheDocument()
+    expect(status()).toHaveTextContent('WATCHOG fainted!')
+    expect(sprite('HYPNO')).not.toBeInTheDocument()
     nextMessage()
-    expect(status()).toHaveTextContent('Recruiter sent out HIREMON!')
-    expect(sprite('SCREENMON')).not.toBeInTheDocument()
-    expect(fx('HIREMON')).toBe('sendout')
+    expect(status()).toHaveTextContent('Recruiter sent out HYPNO!')
+    expect(sprite('WATCHOG')).not.toBeInTheDocument()
+    expect(fx('HYPNO')).toBe('sendout')
   })
 })
 

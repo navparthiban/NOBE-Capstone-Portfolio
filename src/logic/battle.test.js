@@ -255,7 +255,7 @@ describe('createBattle', () => {
     expect(state.active).toBe(0)
     expect(texts(state)).toEqual([
       'A Recruiter wants to battle!',
-      'Recruiter sent out SCREENMON!',
+      'Recruiter sent out WATCHOG!',
       'Go, PORYGON!',
     ])
   })
@@ -264,7 +264,7 @@ describe('createBattle', () => {
     let state = createBattle()
     expect(state.fx).toEqual({ player: 'hidden', opponent: 'hidden' })
     state = advance(state)
-    expect(texts(state)[0]).toBe('Recruiter sent out SCREENMON!')
+    expect(texts(state)[0]).toBe('Recruiter sent out WATCHOG!')
     expect(state.fx).toEqual({ player: 'hidden', opponent: 'sendout' })
     state = advance(state)
     expect(texts(state)[0]).toBe('Go, PORYGON!')
@@ -283,7 +283,7 @@ describe('message queue', () => {
   it('advances one message at a time', () => {
     let state = createBattle()
     state = advance(state)
-    expect(texts(state)).toEqual(['Recruiter sent out SCREENMON!', 'Go, PORYGON!'])
+    expect(texts(state)).toEqual(['Recruiter sent out WATCHOG!', 'Go, PORYGON!'])
     state = advance(advance(state))
     expect(texts(state)).toEqual([])
   })
@@ -537,7 +537,7 @@ describe('switching', () => {
   it('has the Recruiter attack the new Pokémon after it is out', () => {
     let state = switchTo(clearQueue(createBattle()), ALAKAZAM)
     expect(texts(state)).toHaveLength(3)
-    expect(texts(state)[2]).toBe('SCREENMON used Interview! ALAKAZAM took 10 damage.')
+    expect(texts(state)[2]).toBe('WATCHOG used Interview! ALAKAZAM took 10 damage.')
     state = advance(advance(state))
     expect(getLead(state).hp).toBe(45)
     expect(state.party[0].hp).toBe(60)
@@ -601,7 +601,7 @@ describe('switching', () => {
       seen.push({ text: turn.queue[0].text, active: turn.active, fx: turn.fx.opponent })
       turn = advance(turn)
     }
-    const sendOut = seen.findIndex((entry) => entry.text === 'Recruiter sent out HIREMON!')
+    const sendOut = seen.findIndex((entry) => entry.text === 'Recruiter sent out HYPNO!')
     expect(sendOut).toBeGreaterThan(0)
     expect(seen[sendOut]).toMatchObject({ active: 1, fx: 'sendout' })
     for (const entry of seen.slice(0, sendOut)) expect(entry.active).toBe(0)
@@ -617,7 +617,7 @@ describe('takeTurn', () => {
 
   it('has the opponent attack back for small damage', () => {
     const state = play(createBattle(), REACT)
-    expect(texts(state)[1]).toBe('SCREENMON used Interview! PORYGON took 10 damage.')
+    expect(texts(state)[1]).toBe('WATCHOG used Interview! PORYGON took 10 damage.')
     expect(getLead(clearQueue(state)).hp).toBe(50)
   })
 
@@ -628,8 +628,8 @@ describe('takeTurn', () => {
     expect(getLead(state).hp).toBe(50)
     expect(texts(state)).toEqual([
       'Navin used React! It built the frontend.',
-      'SCREENMON fainted!',
-      'Recruiter sent out HIREMON!',
+      'WATCHOG fainted!',
+      'Recruiter sent out HYPNO!',
     ])
     const finished = clearQueue(state)
     expect(finished.active).toBe(1)
@@ -694,10 +694,10 @@ describe('changes appear with their messages', () => {
     expect(state.team[0].hp).toBe(0)
     expect(state.active).toBe(0)
     state = advance(state)
-    expect(texts(state)[0]).toBe('SCREENMON fainted!')
+    expect(texts(state)[0]).toBe('WATCHOG fainted!')
     expect(state.active).toBe(0)
     state = advance(state)
-    expect(texts(state)[0]).toBe('Recruiter sent out HIREMON!')
+    expect(texts(state)[0]).toBe('Recruiter sent out HYPNO!')
     expect(state.active).toBe(1)
   })
 
@@ -724,7 +724,7 @@ describe('fainting and forced switching', () => {
     const state = faintedLead()
     expect(texts(state)).toEqual([
       'Navin used React! It built the frontend.',
-      'SCREENMON used Interview! PORYGON took 5 damage.',
+      'WATCHOG used Interview! PORYGON took 5 damage.',
       'PORYGON fainted!',
     ])
   })
@@ -821,7 +821,7 @@ describe('fainting and forced switching', () => {
     expect(texts(state)).toEqual([
       'Come back, PORYGON!',
       'Go, ALAKAZAM!',
-      'SCREENMON used Interview! ALAKAZAM took 5 damage.',
+      'WATCHOG used Interview! ALAKAZAM took 5 damage.',
       'ALAKAZAM fainted!',
     ])
     const done = clearQueue(state)
@@ -834,7 +834,7 @@ describe('fainting and forced switching', () => {
     const base = clearQueue(createBattle())
     const alone = withHp(base, { 0: 3, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 })
     const state = play(alone, GIT)
-    expect(texts(state)[1]).toBe('SCREENMON used Interview! PORYGON took 2 damage.')
+    expect(texts(state)[1]).toBe('WATCHOG used Interview! PORYGON took 2 damage.')
     expect(texts(state)).toHaveLength(2)
     const done = clearQueue(state)
     expect(done.party[0].hp).toBe(1)
