@@ -59,7 +59,7 @@ export default function BattleScreen({ onRun = () => {}, onWin = () => {} }) {
           <Sprite
             key={`${lead.name}-${state.fx.player}`}
             name={lead.name}
-            src={lead.sprite}
+            src={lead.backSprite}
             side="player"
             fx={state.fx.player}
           />

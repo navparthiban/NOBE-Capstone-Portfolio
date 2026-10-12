@@ -115,6 +115,16 @@ describe('BattleScreen intro', () => {
     expect(container.querySelector('.status--player')).toHaveTextContent('PORYGON')
   })
 
+  it('shows the animated back sprite for the player and a placeholder for the Recruiter', () => {
+    const { container } = render(<BattleScreen />)
+    nextMessage()
+    nextMessage()
+    const player = screen.getByRole('img', { name: 'PORYGON sprite' })
+    expect(player.tagName).toBe('IMG')
+    expect(player.getAttribute('src')).toContain('animated-back-porygon')
+    expect(container.querySelector('.sprite--opponent .sprite__placeholder')).toBeInTheDocument()
+  })
+
   it('types the message out, and a click finishes it before advancing', () => {
     const { container } = render(<BattleScreen />)
     const body = container.querySelector('.text-box__body')

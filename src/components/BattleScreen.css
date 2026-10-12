@@ -95,6 +95,10 @@
   object-fit: contain;
 }
 
+.sprite--player .sprite__body img {
+  object-position: bottom;
+}
+
 .sprite .sprite__ball {
   position: absolute;
   top: 50%;
