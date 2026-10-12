@@ -20,4 +20,12 @@ describe('party data', () => {
       expect(pokemon.hp).toBe(pokemon.maxHp)
     }
   })
+
+  it('gives every Pokémon a front sprite and a different back sprite', () => {
+    for (const pokemon of party) {
+      expect(pokemon.sprite).toBeTruthy()
+      expect(pokemon.backSprite).toBeTruthy()
+      expect(pokemon.backSprite).not.toBe(pokemon.sprite)
+    }
+  })
 })

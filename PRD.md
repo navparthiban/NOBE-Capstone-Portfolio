@@ -139,7 +139,8 @@ Next:
 - No real content yet (skills). `public/resume.pdf` has not been added, so RESUME shows the "not available yet" message until it is
 - The GitHub and LinkedIn URLs in `src/data/bag.js` should be double-checked
 - Party descriptions, roles, type labels, levels, and HP are starter text for Navin to rewrite, and no dates are filled in yet
-- Pixel art and sprites not chosen
+- The Recruiter's team sprites are placeholders
+- The animated back GIFs keep playing with reduced motion on (they don't pause yet)
 - A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
 - While the small menu is open on the party screen, it covers part of the bottom-right card
 - The Professor is a placeholder box

@@ -18,6 +18,15 @@ describe('PartySummary', () => {
     expect(container).not.toHaveTextContent('undefined')
   })
 
+  it('shows the sprite image when one is given, and a placeholder when not', () => {
+    const { container, unmount } = renderSummary({ ...bare, sprite: 'front.png' })
+    expect(screen.getByRole('img', { name: 'TESTMON sprite' })).toHaveAttribute('src', 'front.png')
+    expect(container.querySelector('.sprite__placeholder')).not.toBeInTheDocument()
+    unmount()
+    const { container: bareContainer } = renderSummary(bare)
+    expect(bareContainer.querySelector('.sprite__placeholder')).toBeInTheDocument()
+  })
+
   it('skips only the dates row when only the dates are missing', () => {
     renderSummary({ ...bare, role: 'Builder', type: 'Project', description: 'Made a thing.' })
     expect(screen.getByText('Builder')).toBeInTheDocument()

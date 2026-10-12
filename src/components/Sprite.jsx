@@ -5,7 +5,7 @@ export default function Sprite({ name, src, side, fx }) {
     <div className={`sprite sprite--${side}`} data-fx={fx || undefined}>
       <div className="sprite__body">
         {src ? (
-          <img src={src} alt={name} />
+          <img src={src} alt={`${name} sprite`} />
         ) : (
           <div className="sprite__placeholder" role="img" aria-label={`${name} sprite`} />
         )}
