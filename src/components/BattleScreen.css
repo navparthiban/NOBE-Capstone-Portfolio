@@ -614,16 +614,9 @@
   color: var(--ink);
 }
 
-.badge__placeholder,
 .badge__image {
   width: 8em;
   height: 8em;
-  object-fit: contain;
-}
-
-.badge__placeholder {
-  background: var(--sprite-bg);
-  border: 0.25em dashed var(--border);
 }
 
 /* Bag */

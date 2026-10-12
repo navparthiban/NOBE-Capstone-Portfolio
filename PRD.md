@@ -96,13 +96,13 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The About text and name are in `src/data/profile.js`.
 
 ## Badge screen
-- After "Navin won the battle!", the Recruiter says "Impressive! You've earned this." and then "NAVIN received the PORTFOLIO BADGE!", in the same text box on the battle field. Then the badge screen fills the frame: the badge image (a placeholder box for now), "PORTFOLIO BADGE", a text box ("NAVIN earned the PORTFOLIO BADGE!"), and a CONTINUE button at the bottom right.
+- After "Navin won the battle!", the Recruiter says "Impressive! You've earned this." and then "NAVIN received the PORTFOLIO BADGE!", in the same text box on the battle field. Then the badge screen fills the frame: the pixel-art badge (a gold octagon with a `< >` and flask emblem, and a short shine sweep that is skipped with reduced motion), "PORTFOLIO BADGE", a text box ("NAVIN earned the PORTFOLIO BADGE!"), and a CONTINUE button at the bottom right.
 - CONTINUE (Enter or a click) opens the plain portfolio. Escape and the arrow keys do nothing on this screen.
 - It is only reached by winning: the badge screen appears only after the last Recruiter Pokémon faints.
 - When the plain portfolio is reached after winning, its top button says "Play again". It starts a brand-new battle without the Professor intro: every Pokémon at full HP, PORYGON leading, and the Recruiter's full team, beginning at "A Recruiter wants to battle!".
 - When the portfolio is reached through RUN, it still says "Back to the game" and keeps the battle exactly as it was. A direct `/#portfolio` link, or a refresh on the portfolio, says "Play the game" instead, because no battle exists yet.
 - The browser's Back button from the portfolio after winning returns to the badge screen, and CONTINUE goes to the portfolio again.
-- The dialogue, the badge name, and the badge image are in `src/data/badge.js`. The image is `null` for now, which shows a placeholder box.
+- The dialogue and the badge name are in `src/data/badge.js`. The badge picture is the reusable `BadgeArt` component, so it could also appear on the plain portfolio.
 
 ## Game frame
 - The whole game sits in one frame with a fixed aspect ratio, centered in the browser both ways: 4:3 on desktops, tablets, and phones held sideways, and 3:4 on phones held upright, where it uses the full width.
@@ -144,7 +144,7 @@ Next:
 - A fainted Recruiter Pokémon stays on screen until its replacement is sent out (no faint animation)
 - While the small menu is open on the party screen, it covers part of the bottom-right card
 - Screen-reader behavior of the pixel-style UI is untested
-- The badge image and the badge text (`src/data/badge.js`) are placeholders
+- The badge text (`src/data/badge.js`) is a placeholder
 - A win is not remembered across a reload, so reloading the portfolio after winning shows "Play the game" and starts from the intro
 - The intro text is a first draft for Navin to edit, and it plays again on every page load
 - Move damage values are placeholders

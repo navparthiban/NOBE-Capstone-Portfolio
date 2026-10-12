@@ -1,6 +1,5 @@
 export const badge = {
   name: 'PORTFOLIO BADGE',
-  image: null,
   prompt: 'NAVIN earned the PORTFOLIO BADGE!',
 }
 

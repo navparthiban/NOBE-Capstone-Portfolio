@@ -3,10 +3,9 @@ import { MAX_LINE_LENGTH } from '../logic/intro.js'
 import { badge, badgeLines } from './badge.js'
 
 describe('badge data', () => {
-  it('has a name, a prompt, and a placeholder image by default', () => {
+  it('has a name and a prompt', () => {
     expect(badge.name).toBeTruthy()
     expect(badge.prompt).toBeTruthy()
-    expect(badge.image).toBeNull()
   })
 
   it('has badge lines with no stray spaces and none too long for the text box', () => {
