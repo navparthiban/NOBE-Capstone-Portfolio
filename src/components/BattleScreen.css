@@ -11,8 +11,10 @@
   --focus: #3b5dc9;
   --selected-bg: #dbe6ff;
   --sprite-bg: #b8b5a2;
-  --platform-top: #a7f070;
-  --platform-edge: var(--hp-high);
+  --grass-light: color-mix(in srgb, var(--hp-high) 45%, var(--screen));
+  --grass-mid: color-mix(in srgb, var(--hp-high) 65%, var(--screen));
+  --grass-dark: color-mix(in srgb, var(--hp-high) 75%, var(--ink));
+  --grass-rim: color-mix(in srgb, var(--sprite-bg) 55%, var(--ink));
 }
 
 .visually-hidden {
@@ -91,24 +93,26 @@
 /* Each platform is centred on the bottom edge of its sprite, so the feet rest on it. */
 .platform {
   position: absolute;
-  box-sizing: border-box;
+  display: block;
   width: calc(var(--pad-size) * 1.2);
   height: calc(var(--pad-size) * 0.3);
-  background: var(--platform-edge);
-  border: 0.2em solid var(--border);
-  border-radius: 50%;
   pointer-events: none;
 }
 
-.platform::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 8%;
-  width: 84%;
-  height: 70%;
-  background: var(--platform-top);
-  border-radius: 50%;
+.platform__light {
+  fill: var(--grass-light);
+}
+
+.platform__mid {
+  fill: var(--grass-mid);
+}
+
+.platform__dark {
+  fill: var(--grass-dark);
+}
+
+.platform__rim {
+  fill: var(--grass-rim);
 }
 
 .platform--opponent {
