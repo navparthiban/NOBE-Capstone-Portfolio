@@ -52,6 +52,7 @@
   --opponent-size: min(40cqh, 28cqw);
   --player-size: min(55cqh, 34cqw);
   --player-left: 8%;
+  --professor-size: min(60cqh, 36cqw);
 }
 
 /* Kept mounted but out of the way while PARTY or BAG is open. display: none would restart the animations. */
@@ -80,7 +81,7 @@
 .sprite--professor {
   top: 50%;
   left: 50%;
-  width: min(60cqh, 36cqw);
+  width: var(--professor-size);
   translate: -50% -50%;
 }
 
@@ -121,6 +122,13 @@
   right: calc(8% - var(--opponent-size) * 0.1);
 }
 
+.platform--professor {
+  --pad-size: var(--professor-size);
+  top: calc(50% + var(--professor-size) * 0.35);
+  left: 50%;
+  translate: -50% 0;
+}
+
 .platform--player {
   --pad-size: var(--player-size);
   bottom: 3cqh;
@@ -141,7 +149,8 @@
 }
 
 .sprite--player .sprite__body img,
-.sprite--opponent .sprite__body img {
+.sprite--opponent .sprite__body img,
+.sprite--professor .sprite__body img {
   object-position: bottom;
 }
 

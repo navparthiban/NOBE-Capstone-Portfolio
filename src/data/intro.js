@@ -1,6 +1,8 @@
+import professorOak from '../assets/sprites/professor-oak.png'
+
 export const professor = {
   name: 'PROFESSOR',
-  sprite: null,
+  sprite: professorOak,
 }
 
 export const introLines = [

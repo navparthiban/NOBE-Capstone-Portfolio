@@ -86,7 +86,7 @@ describe('getIntroLine', () => {
 describe('intro dialogue', () => {
   it('has the Professor and the 12 lines in order', () => {
     expect(professor.name).toBe('PROFESSOR')
-    expect(professor.sprite).toBe(null)
+    expect(professor.sprite).toBeTruthy()
     expect(introLines[0]).toBe("Hello there! Welcome to Navin's portfolio!")
     expect(introLines.at(-1)).toBe('Good luck!')
   })

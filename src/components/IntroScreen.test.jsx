@@ -34,9 +34,12 @@ function renderAt(line) {
 }
 
 describe('IntroScreen', () => {
-  it('starts with the Professor placeholder, the first line, and a SKIP button', () => {
-    renderAt(0)
-    expect(screen.getByRole('img', { name: 'PROFESSOR sprite' })).toBeInTheDocument()
+  it('starts with the Professor sprite, the first line, and a SKIP button', () => {
+    const { container } = renderAt(0)
+    const sprite = screen.getByRole('img', { name: 'PROFESSOR sprite' })
+    expect(sprite.getAttribute('src')).toContain('professor-oak')
+    expect(container.querySelector('.sprite__placeholder')).not.toBeInTheDocument()
+    expect(container.querySelector('.platform--professor')).toBeInTheDocument()
     expect(status()).toHaveTextContent(introLines[0])
     expect(screen.getByRole('button', { name: 'SKIP' })).toBeInTheDocument()
   })
