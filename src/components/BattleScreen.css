@@ -95,7 +95,8 @@
   object-fit: contain;
 }
 
-.sprite--player .sprite__body img {
+.sprite--player .sprite__body img,
+.sprite--opponent .sprite__body img {
   object-position: bottom;
 }
 

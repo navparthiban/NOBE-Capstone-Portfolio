@@ -1,23 +1,27 @@
+import bisharp from '../assets/sprites/animated-front-bisharp.gif'
+import hypno from '../assets/sprites/animated-front-hypno.gif'
+import watchog from '../assets/sprites/animated-front-watchog.gif'
+
 export const recruiterTeam = [
   {
-    name: 'SCREENMON',
+    name: 'WATCHOG',
     level: 20,
     maxHp: 40,
-    sprite: null,
+    sprite: watchog,
     attack: { name: 'Interview', damage: 10 },
   },
   {
-    name: 'HIREMON',
+    name: 'HYPNO',
     level: 25,
     maxHp: 50,
-    sprite: null,
+    sprite: hypno,
     attack: { name: 'Coding Test', damage: 12 },
   },
   {
-    name: 'OFFERMON',
+    name: 'BISHARP',
     level: 30,
     maxHp: 60,
-    sprite: null,
+    sprite: bisharp,
     attack: { name: 'Negotiate', damage: 14 },
   },
 ]
