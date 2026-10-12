@@ -11,6 +11,8 @@
   --focus: #3b5dc9;
   --selected-bg: #dbe6ff;
   --sprite-bg: #b8b5a2;
+  --platform-top: #a7f070;
+  --platform-edge: var(--hp-high);
 }
 
 .visually-hidden {
@@ -45,6 +47,9 @@
   background: var(--screen);
   border: 0.25em solid var(--border);
   color: var(--ink);
+  --opponent-size: min(40cqh, 28cqw);
+  --player-size: min(55cqh, 34cqw);
+  --player-left: 8%;
 }
 
 /* Kept mounted but out of the way while PARTY or BAG is open. display: none would restart the animations. */
@@ -67,6 +72,7 @@
 .sprite--opponent {
   top: 8%;
   right: 8%;
+  width: var(--opponent-size);
 }
 
 .sprite--professor {
@@ -77,9 +83,44 @@
 }
 
 .sprite--player {
-  bottom: 6%;
+  bottom: calc(3cqh + var(--player-size) * 0.15);
+  left: var(--player-left);
+  width: var(--player-size);
+}
+
+/* Each platform is centred on the bottom edge of its sprite, so the feet rest on it. */
+.platform {
+  position: absolute;
+  box-sizing: border-box;
+  width: calc(var(--pad-size) * 1.2);
+  height: calc(var(--pad-size) * 0.3);
+  background: var(--platform-edge);
+  border: 0.2em solid var(--border);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.platform::before {
+  content: '';
+  position: absolute;
+  top: 0;
   left: 8%;
-  width: min(55cqh, 34cqw);
+  width: 84%;
+  height: 70%;
+  background: var(--platform-top);
+  border-radius: 50%;
+}
+
+.platform--opponent {
+  --pad-size: var(--opponent-size);
+  top: calc(8% + var(--opponent-size) * 0.85);
+  right: calc(8% - var(--opponent-size) * 0.1);
+}
+
+.platform--player {
+  --pad-size: var(--player-size);
+  bottom: 3cqh;
+  left: calc(var(--player-left) - var(--player-size) * 0.1);
 }
 
 .sprite__body {
@@ -739,9 +780,9 @@
   border-bottom: 0;
 }
 
-.frame[data-orientation='portrait'] .sprite--player {
-  left: 4%;
-  width: min(55cqh, 30cqw);
+.frame[data-orientation='portrait'] .field {
+  --player-size: min(55cqh, 30cqw);
+  --player-left: 4%;
 }
 
 .frame[data-orientation='portrait'] .status {
