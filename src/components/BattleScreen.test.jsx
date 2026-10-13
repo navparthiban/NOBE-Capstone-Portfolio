@@ -327,7 +327,7 @@ describe('BattleScreen battle', () => {
     expect(seen.slice(-3)).toEqual(['Navin won the battle!', ...badgeLines])
     expect(screen.getByRole('region', { name: 'Badge' })).toBeInTheDocument()
     expect(screen.getByText(badge.name)).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: `${badge.name} image` })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Portfolio Badge' })).toBeInTheDocument()
     expect(status()).toHaveTextContent(badge.prompt)
     expect(continueButton()).toHaveFocus()
     expect(screen.queryByRole('button', { name: 'FIGHT' })).not.toBeInTheDocument()
@@ -363,17 +363,14 @@ describe('BattleScreen battle', () => {
     expect(screen.queryByRole('button', { name: 'CONTINUE' })).not.toBeInTheDocument()
   })
 
-  it('shows the badge image from the data when there is one', () => {
-    const original = badge.image
-    badge.image = 'badge.png'
-    try {
-      render(<BattleScreen />)
-      skipIntro()
-      winBattle()
-      expect(screen.getByRole('img', { name: badge.name })).toHaveAttribute('src', 'badge.png')
-    } finally {
-      badge.image = original
-    }
+  it('shows the pixel-art badge with its alt text', () => {
+    const { container } = render(<BattleScreen />)
+    skipIntro()
+    winBattle()
+    const art = within(screen.getByRole('region', { name: 'Badge' })).getByRole('img', { name: 'Portfolio Badge' })
+    expect(art.tagName.toLowerCase()).toBe('svg')
+    expect(art).toHaveAttribute('shape-rendering', 'crispEdges')
+    expect(container.querySelector('.badge__placeholder')).not.toBeInTheDocument()
   })
 })
 

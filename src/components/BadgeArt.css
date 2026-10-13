@@ -1,0 +1,55 @@
+.badge-art {
+  display: block;
+}
+
+.badge-art__outline,
+.badge-art__flask {
+  fill: var(--ink);
+}
+
+.badge-art__light {
+  fill: color-mix(in srgb, var(--hp-mid) 55%, var(--screen));
+}
+
+.badge-art__mid {
+  fill: var(--hp-mid);
+}
+
+.badge-art__dark {
+  fill: color-mix(in srgb, var(--hp-mid) 60%, var(--ink));
+}
+
+.badge-art__bracket {
+  fill: var(--focus);
+}
+
+.badge-art__glass {
+  fill: var(--panel);
+}
+
+.badge-art__liquid {
+  fill: var(--hp-high);
+}
+
+.badge-art__shine {
+  fill: var(--panel);
+  opacity: 0.8;
+  transform: translateX(-3px);
+  animation: badge-shine 0.8s linear 0.3s 1 both;
+}
+
+@keyframes badge-shine {
+  from {
+    transform: translateX(-3px);
+  }
+
+  to {
+    transform: translateX(47px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-art__shine {
+    display: none;
+  }
+}

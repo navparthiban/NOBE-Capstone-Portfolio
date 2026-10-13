@@ -1,5 +1,6 @@
 import { badge } from '../data/badge.js'
 import useMenuFocus from '../hooks/useMenuFocus.js'
+import BadgeArt from './BadgeArt.jsx'
 import TextBox from './TextBox.jsx'
 
 export default function BadgeScreen({ onContinue }) {
@@ -8,11 +9,7 @@ export default function BadgeScreen({ onContinue }) {
   return (
     <section className="badge" aria-label="Badge">
       <div className="badge__body">
-        {badge.image ? (
-          <img className="badge__image" src={badge.image} alt={badge.name} />
-        ) : (
-          <div className="badge__placeholder" role="img" aria-label={`${badge.name} image`} />
-        )}
+        <BadgeArt className="badge__image" />
         <p className="badge__name">{badge.name}</p>
       </div>
       <div className="screen__footer screen__footer--tall">

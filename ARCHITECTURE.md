@@ -39,6 +39,7 @@ src/
     PartySummary.jsx   one Pokémon's summary
     BagScreen.jsx      the bag: item links, description text box, and CANCEL
     BadgeScreen.jsx    the badge, its name, a text box, and CONTINUE
+    BadgeArt.jsx       the pixel-art badge as an inline SVG (reusable), with BadgeArt.css
     IntroScreen.jsx    the Professor intro, with the typewriter text box, SKIP, and Escape
     BattleTransition.jsx  the bars and flash (or fade) between the intro and the battle
     PortfolioPage.jsx  the plain portfolio page
@@ -47,7 +48,7 @@ src/
     ../App.test.jsx    the intro to battle hand-off, RUN, and the hash URL
   data/
     bag.js             the bag items (resume, GitHub, LinkedIn, email): name, description, link
-    badge.js           the badge (name, image, prompt) and the dialogue after winning
+    badge.js           the badge (name, prompt) and the dialogue after winning
     badge.test.js
     bag.test.js
     intro.js           the Professor and the lines of dialogue
@@ -187,7 +188,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - Change move names, damage, or messages in `src/data/moves.js`. The move menu is two columns in a fixed-width box (`grid-template-columns` on `.panel` in `BattleScreen.css`, 22em), sized so that "TypeScript" fits on one line. If you add a longer move name, widen that column a little or the name will break across two lines.
 - Change the party (names, levels, HP, experience, type, role, dates, description) in `src/data/party.js`. `type`, `role`, `dates`, and `description` are optional, and the summary leaves out whichever are missing. The plain portfolio uses this same file for its Experience section.
 - Change what the Professor says in `src/data/intro.js`, one string per message. Keep each line to 100 characters or fewer; the data test fails otherwise. The text box fits at least about 6 lines of 24 characters even on a small phone, so a 100-character line always fits, and a longer one should be split into two entries. The Professor's image is `professor.sprite` there (`professor-oak.png`).
-- Change the badge dialogue, the badge name, and the text on the badge screen in `src/data/badge.js`. Keep each line to 100 characters or fewer (a test checks). To use a real badge image, import it there and set `badge.image`.
+- Change the badge dialogue, the badge name, and the text on the badge screen in `src/data/badge.js`. Keep each line to 100 characters or fewer (a test checks). The picture is the `BadgeArt` component: `BADGE_ROWS` in `src/logic/badgeArt.js` is the 24×24 pixel art, one character per pixel (legend in `BADGE_COLORS`), so change the characters to change the badge. `BadgeArt.css` colours it with `color-mix` of the palette variables. The shine is a CSS animation on a clipped band, hidden with reduced motion, and `<BadgeArt />` can be dropped into any page.
 - Change the bag items, links, and descriptions in `src/data/bag.js`. The resume is the file `public/resume.pdf`. The portfolio's Links section uses the same items.
 - Change the portfolio's name, tagline, and About paragraphs (one string each) in `src/data/profile.js`. Its Skills come from `src/data/moves.js`.
 - Change the Recruiter's Pokémon and attacks in `src/data/pokemon.js`.
@@ -196,6 +197,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 ## Testing
 - `battle.test.js` tests the logic directly: damage, fainting and sending out the next Pokémon, victory, HP limits, no moves after victory, the badge menu, menus, cursor edges, and the party screens.
 - `platform.test.js` checks that the platform pixel map is the same every time, stays inside the grid, never uses a pixel twice, and has tufts and a lower rim.
+- `badgeArt.test.js` and `BadgeArt.test.jsx` check the badge grid (size, symmetry, emblem, no repeated pixels), the shine sweep, the alt text, and unique clip ids.
 - `party.test.js` checks that the party data has six unique Pokémon with the fields the screens need.
 - `pokemon.test.js` checks that the Recruiter's team is WATCHOG, HYPNO, BISHARP in order, each with a sprite.
 - `BattleScreen.test.jsx` plays the real screen with fake timers: the intro, typing and advancing, menus with arrows and Escape, a full battle to the badge screen, and the party list and summaries.
