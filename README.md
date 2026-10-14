@@ -1,6 +1,7 @@
 # Navin's Battle Portfolio
+This is a personal portfolio which is styled as a pixel-art Pokemon trainer battle. You will be playing me (Navin) against a recruiter, and you will be taught how to navigate the site as soon as you enter. If you wish to immediately get to a plain-view of the portfolio, all you need to do is press SKIP during the Professor's intro, and then hit "RUN" at the bottom right of the screen. 
 
-A personal portfolio styled as a pixel-art Pokémon trainer battle. You play Navin against a Recruiter, and the battle menu is the navigation. Built for the NOBE Tech Committee capstone.
+Fastest way to get to the plain-view of the portfolio: https://navparthiban.github.io/NOBE-Capstone-Portfolio/#portfolio
 
 ## Setup
 Requires Node.js 20 or newer.
@@ -26,15 +27,10 @@ Live site: https://navparthiban.github.io/NOBE-Capstone-Portfolio/
 
 GitHub Actions (`.github/workflows/ci.yml`) runs lint, tests, and build on every pull request. The `check` job must pass before a PR can merge into main. When main is updated, the same checks run again and then the site deploys to GitHub Pages automatically. If a check fails, nothing is deployed.
 
-## CI evidence
-Pull request [#2](https://github.com/navparthiban/NOBE-Capstone-Portfolio/pull/2) shows the pipeline catching a mistake. A deliberate lint error made the check fail and blocked the merge, and the next commit fixed it.
-
-- Failed check: [run 37569915543](https://github.com/navparthiban/NOBE-Capstone-Portfolio/actions/runs/37569915543)
-- Corrected passing run: [run 37570082100](https://github.com/navparthiban/NOBE-Capstone-Portfolio/actions/runs/37570082100)
-- Main deployments: [run 37569796103](https://github.com/navparthiban/NOBE-Capstone-Portfolio/actions/runs/37569796103) and [run 37570156790](https://github.com/navparthiban/NOBE-Capstone-Portfolio/actions/runs/37570156790)
-
 ## AI use and limitations
-Claude Code (an AI assistant) helps plan and write parts of this project. Navin reviews and approves every plan and change. The project is in early development, so most features are not built yet.
+I used Claude Code to plan and write most of the code for this project. My role was to decide what to build, write the prompts for each feature, review every plan Claude generated before it started, and test each change in the browser before merging. All the ideas behind the site, like the battle menu as navigation and each Pokemon standing for one of my experiences, are mine. I wrote the README intro, this section, and the experience descriptions myself. 
+
+Claude Code did have real limitations. When I asked Claude Code to change a message timing, it ended up breaking the battle function so the Recruiter's next Pokemon never came out even though every test still technically passed. I was able to catch this mistake by playing the game myself, and I had Claude Code include a new test so this wouldn't be able to happen again. I'm still learning parts of the codebase (battle logic, etc.), and I'm working through understanding it before presenting. 
 
 ## Project Docs
 - [CLAUDE.md](CLAUDE.md)
