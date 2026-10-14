@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { bagItems } from '../data/bag.js'
 import { getLinkProps } from '../logic/links.js'
 import useMenuFocus from '../hooks/useMenuFocus.js'
+import { Backpack, BagIcon } from './BagArt.jsx'
 import TextBox from './TextBox.jsx'
 
 export default function BagScreen({ cursor, onKeyDown, onSelect }) {
@@ -30,7 +31,7 @@ export default function BagScreen({ cursor, onKeyDown, onSelect }) {
     <section className="bag" aria-label="Bag" onKeyDown={onKeyDown}>
       <div className="bag__body">
         <div className="bag__pocket" aria-hidden="true">
-          <div className="bag__art" />
+          <Backpack className="bag__art" />
           <span>BAG</span>
         </div>
         <ul className="bag__list" aria-label="Bag items">
@@ -51,6 +52,7 @@ export default function BagScreen({ cursor, onKeyDown, onSelect }) {
                   onClick={() => handleClick(item, index)}
                 >
                   {cursorMark}
+                  <BagIcon icon={item.icon} className="bag__icon" />
                   {item.name}
                   {item.external && <span className="visually-hidden"> (opens in a new tab)</span>}
                 </a>

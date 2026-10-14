@@ -1,0 +1,56 @@
+.bag-art {
+  display: block;
+}
+
+.bag-art__outline {
+  fill: var(--ink);
+}
+
+.bag-art__light {
+  fill: color-mix(in srgb, var(--hp-low) 55%, var(--screen));
+}
+
+.bag-art__mid {
+  fill: var(--hp-low);
+}
+
+.bag-art__dark {
+  fill: color-mix(in srgb, var(--hp-low) 60%, var(--ink));
+}
+
+.bag-art__flap {
+  fill: color-mix(in srgb, var(--hp-low) 80%, var(--ink));
+}
+
+.bag-art__buckle,
+.bag-art__gold {
+  fill: var(--hp-mid);
+}
+
+.bag-art__gold-dark {
+  fill: color-mix(in srgb, var(--hp-mid) 60%, var(--ink));
+}
+
+.bag-art__pocket {
+  fill: color-mix(in srgb, var(--hp-low) 30%, var(--screen));
+}
+
+.bag-art__zipper {
+  fill: color-mix(in srgb, var(--hp-low) 40%, var(--ink));
+}
+
+.bag-art__paper {
+  fill: var(--panel);
+}
+
+.bag-art__text {
+  fill: var(--hp-track);
+}
+
+.bag-art__blue {
+  fill: var(--focus);
+}
+
+.bag-art__grey {
+  fill: color-mix(in srgb, var(--sprite-bg) 60%, var(--ink));
+}

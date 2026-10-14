@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { RESUME_URL } from '../data/bag.js'
+import { RESUME_URL, bagItems } from '../data/bag.js'
 import BagScreen from './BagScreen.jsx'
 
 afterEach(() => {
@@ -119,5 +119,35 @@ describe('BagScreen resume', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Google Drive')
     expect(screen.getAllByRole('link')).toHaveLength(4)
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('BagScreen pixel art', () => {
+  it('draws the backpack as a decorative pixel-art SVG', async () => {
+    const { container } = render(<BagScreen cursor={0} onKeyDown={() => {}} onSelect={vi.fn()} />)
+    const backpack = container.querySelector('.bag__pocket svg.bag__art')
+    expect(backpack).toBeInTheDocument()
+    expect(backpack).toHaveAttribute('aria-hidden', 'true')
+    expect(backpack).toHaveAttribute('shape-rendering', 'crispEdges')
+    expect(backpack.querySelectorAll('path').length).toBeGreaterThan(0)
+  })
+
+  it('draws one decorative icon inside each item, without changing its name', async () => {
+    const { container } = render(<BagScreen cursor={0} onKeyDown={() => {}} onSelect={vi.fn()} />)
+    const icons = container.querySelectorAll('svg.bag__icon')
+    expect(icons).toHaveLength(bagItems.length)
+    for (const item of bagItems) {
+      const link = screen.getByRole('link', { name: new RegExp(`^${item.name}`) })
+      const icon = link.querySelector('svg.bag__icon')
+      expect(icon).toBeInTheDocument()
+      expect(icon).toHaveAttribute('aria-hidden', 'true')
+      expect(icon).toHaveAttribute('shape-rendering', 'crispEdges')
+    }
+  })
+
+  it('has a different picture for each item', async () => {
+    const { container } = render(<BagScreen cursor={0} onKeyDown={() => {}} onSelect={vi.fn()} />)
+    const pictures = [...container.querySelectorAll('svg.bag__icon')].map((svg) => svg.innerHTML)
+    expect(new Set(pictures).size).toBe(bagItems.length)
   })
 })

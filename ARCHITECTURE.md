@@ -19,6 +19,8 @@ src/
     transition.test.js
     links.js           the link attributes shared by the bag and the portfolio
     links.test.js
+    bagArt.js          the pixel grids for the bag's backpack and item icons, and the functions that turn a grid into SVG paths
+    bagArt.test.js
   hooks/
     useTypewriter.js   reveals message text one character at a time
     useMenuFocus.js    keeps browser focus on the button at the cursor
@@ -39,6 +41,7 @@ src/
     BagScreen.jsx      the bag: item links, description text box, and CANCEL
     BadgeScreen.jsx    the badge, its name, a text box, and CONTINUE
     BadgeArt.jsx       the pixel-art badge as an inline SVG (reusable), with BadgeArt.css
+    BagArt.jsx         the bag's pixel-art backpack and item icons as inline SVGs, with BagArt.css
     IntroScreen.jsx    the Professor intro, with the typewriter text box, SKIP, and Escape
     BattleTransition.jsx  the bars and flash (or fade) between the intro and the battle
     PortfolioPage.jsx  the plain portfolio page
@@ -46,7 +49,7 @@ src/
     BattleScreen.test.jsx, PartySummary.test.jsx, GameFrame.test.jsx, BagScreen.test.jsx, IntroScreen.test.jsx, PortfolioPage.test.jsx
     ../App.test.jsx    the intro to battle hand-off, RUN, and the hash URL
   data/
-    bag.js             the bag items (resume, GitHub, LinkedIn, email): name, description, link
+    bag.js             the bag items (resume, GitHub, LinkedIn, email): name, icon, description, link
     badge.js           the badge (name, prompt) and the dialogue after winning
     badge.test.js
     bag.test.js
@@ -109,6 +112,7 @@ key / click -> BattleScreen -> dispatch(action) -> battleReducer -> new state ->
 - The description text box shows the highlighted item's `description`. EMAIL's description includes the address itself, since a `mailto:` link does nothing on a computer with no mail app.
 - An item with `copyText` (only EMAIL) also copies that text to the clipboard when clicked, and the text box then shows its `copiedMessage`. If the browser has no clipboard or refuses, nothing changes and the address stays visible.
 - The bag's footer uses `screen__footer--tall` so the address fits on its own line without breaking.
+- The pictures are decorative pixel art. `BACKPACK_ROWS` (24×24) and `BAG_ICON_ROWS` (16×16, one grid each for resume, github, linkedin, email) in `src/logic/bagArt.js` use one character per pixel, and `artPaths` turns a grid into one SVG path per colour, the same idea as the badge. `Backpack` and `BagIcon` in `BagArt.jsx` draw them as inline SVGs with `shape-rendering: crispEdges`, `aria-hidden`, and no gradients, coloured by `BagArt.css` from the palette variables. Each bag item names its icon with `icon`. The backpack fills the pocket box beside the list (and sits in a row above it in portrait), and each icon is 2em, so both scale with the frame.
 - RESUME is a Google Drive link like the other web links (`RESUME_URL` in `src/data/bag.js`), so it needs no availability check and is always a real link.
 - `PartyScreen` and `BagScreen` share the `screen__footer` and `screen__cancel` styles for the text box with CANCEL along the bottom.
 
@@ -187,7 +191,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - Change the party (names, levels, HP, experience, type, role, dates, description) in `src/data/party.js`. `type`, `role`, `dates`, and `description` are optional, and the summary leaves out whichever are missing. The plain portfolio uses this same file for its Experience section.
 - Change what the Professor says in `src/data/intro.js`, one string per message. Keep each line to 100 characters or fewer; the data test fails otherwise. The text box fits at least about 6 lines of 24 characters even on a small phone, so a 100-character line always fits, and a longer one should be split into two entries. The Professor's image is `professor.sprite` there (`professor-oak.png`).
 - Change the badge dialogue, the badge name, and the text on the badge screen in `src/data/badge.js`. Keep each line to 100 characters or fewer (a test checks). The picture is the `BadgeArt` component: `BADGE_ROWS` in `src/logic/badgeArt.js` is the 24×24 pixel art, one character per pixel (legend in `BADGE_COLORS`), so change the characters to change the badge. `BadgeArt.css` colours it with `color-mix` of the palette variables. The shine is a CSS animation on a clipped band, hidden with reduced motion, and `<BadgeArt />` can be dropped into any page.
-- Change the bag items, links, and descriptions in `src/data/bag.js`. The resume is the Google Drive link `RESUME_URL`. The portfolio's Links section uses the same items.
+- Change the bag items, links, descriptions, and which icon each uses in `src/data/bag.js`. Change the backpack or an icon by editing its characters in `src/logic/bagArt.js` (legend in `BAG_ART_COLORS`, colours in `BagArt.css`). The resume is the Google Drive link `RESUME_URL`. The portfolio's Links section uses the same items.
 - Change the portfolio's name, tagline, and About paragraphs (one string each) in `src/data/profile.js`. Its Skills come from `src/data/moves.js`.
 - Change the Recruiter's Pokémon and attacks in `src/data/pokemon.js`.
 - To add real sprites, put the images in `src/assets/sprites/`, import them in the data file, and set each Pokémon's `sprite`.
@@ -200,6 +204,7 @@ Everything the visitor sees sits inside one frame with a fixed aspect ratio, cen
 - `pokemon.test.js` checks that the Recruiter's team is WATCHOG, HYPNO, BISHARP in order, each with a sprite.
 - `BattleScreen.test.jsx` plays the real screen with fake timers: the intro, typing and advancing, menus with arrows and Escape, a full battle to the badge screen, and the party list and summaries.
 - `bag.test.js` checks the bag data: four unique items with the exact links.
+- `bagArt.test.js` checks that every grid is square, uses only known characters, never repeats a pixel, that the backpack is symmetric, and that every bag item has an icon. `BagScreen.test.jsx` also checks that the backpack and one icon per item are rendered, each `aria-hidden` with `crispEdges`, and that the link names are unchanged.
 - `BagScreen.test.jsx` stubs `fetch` and checks each link, the new-tab attributes, the descriptions, copying the email address (including when the clipboard is refused or missing), and that RESUME is a link from the first render with no network check.
 - The switching tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover the messages and their order, the Recruiter's attack after a switch, each Pokémon keeping its own HP, switching to the Pokémon already in battle, switching after victory, and the Recruiter's replacement not appearing before its message.
 - The fainting tests (in `battle.test.js` and `BattleScreen.test.jsx`) cover fainting and its messages, the faint applying only with its message, the party opening by itself and refusing Escape, CANCEL and fainted Pokémon, a forced switch with no recall or attack, the last Pokémon able to fight staying at 1 HP, a full battle that still ends in the badge screen. In the logic tests, the `recover` helper plays through a forced switch so long battles can run to the end.
