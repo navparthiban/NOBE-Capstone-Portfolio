@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { RESUME_URL, bagItems } from '../data/bag.js'
+import { bagItems } from '../data/bag.js'
 import { moves } from '../data/moves.js'
 import { party } from '../data/party.js'
 import { profile as defaultProfile } from '../data/profile.js'
-import useFileAvailable from '../hooks/useFileAvailable.js'
 import { getLinkProps } from '../logic/links.js'
 import './Portfolio.css'
 
@@ -23,18 +22,14 @@ function Experience({ pokemon }) {
   )
 }
 
-function LinkItem({ item, missing }) {
+function LinkItem({ item }) {
   return (
     <li className="portfolio__link-item">
-      {missing ? (
-        <span className="portfolio__link-name">{item.name}</span>
-      ) : (
-        <a className="portfolio__link-name" {...getLinkProps(item)}>
-          {item.name}
-          {item.external && <span className="visually-hidden"> (opens in a new tab)</span>}
-        </a>
-      )}
-      <p>{missing ? item.missingMessage : item.description}</p>
+      <a className="portfolio__link-name" {...getLinkProps(item)}>
+        {item.name}
+        {item.external && <span className="visually-hidden"> (opens in a new tab)</span>}
+      </a>
+      <p>{item.description}</p>
     </li>
   )
 }
@@ -48,7 +43,6 @@ export default function PortfolioPage({
   links = bagItems,
 }) {
   const heading = useRef(null)
-  const resumeAvailable = useFileAvailable(RESUME_URL, 'pdf')
 
   useEffect(() => {
     const previousTitle = document.title
@@ -102,7 +96,7 @@ export default function PortfolioPage({
           <h2 id="portfolio-links">Links and resume</h2>
           <ul className="portfolio__links">
             {links.map((item) => (
-              <LinkItem key={item.name} item={item} missing={item.missingMessage !== undefined && !resumeAvailable} />
+              <LinkItem key={item.name} item={item} />
             ))}
           </ul>
         </section>

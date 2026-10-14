@@ -12,7 +12,7 @@ describe('bag data', () => {
 
   it('links each item to the right place', () => {
     expect(byName('RESUME').url).toBe(RESUME_URL)
-    expect(RESUME_URL.endsWith('resume.pdf')).toBe(true)
+    expect(RESUME_URL).toBe('https://drive.google.com/file/d/1vuss1LDWPIp0UDzajf2gXJdhKR7cN1RY/view?usp=sharing')
     expect(byName('GITHUB').url).toBe('https://github.com/navparthiban')
     expect(byName('LINKEDIN').url).toBe('https://www.linkedin.com/in/navin-parthiban')
     expect(byName('EMAIL').url).toBe('mailto:navparthiban@gmail.com')
@@ -26,7 +26,7 @@ describe('bag data', () => {
     ])
   })
 
-  it('has a message for when the resume is missing', () => {
-    expect(byName('RESUME').missingMessage).toMatch(/resume/i)
+  it('has no missing-file message, since the resume is not a local file', () => {
+    for (const item of bagItems) expect(item.missingMessage).toBeUndefined()
   })
 })

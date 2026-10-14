@@ -693,10 +693,6 @@
   box-shadow: inset 0 0 0 0.25em var(--focus);
 }
 
-.bag__item--missing {
-  color: var(--hp-track);
-}
-
 .bag__item:focus-visible {
   outline: 0.25em solid var(--focus);
   outline-offset: 0.125em;
