@@ -58,7 +58,7 @@ export const party = [
     experience: 'DECA Marketing Campaign',
     type: 'Competition',
     role: 'Team Leader',
-    description: 'Led my team\'s campaign manual for a Logitech G915 (Keyboard) marketing project. We placed in the top 10 at state ',
+    description: 'Led my team\'s campaign manual for a Logitech G915 (Keyboard) marketing project. We placed in the top 10 at state',
   },
   {
     name: 'CHANSEY',
