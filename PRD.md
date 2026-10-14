@@ -78,18 +78,17 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 ## Bag
 - BAG opens a bag screen like the games': a bag picture box, a list of four items, and a text box along the bottom that describes the highlighted item, with CANCEL at the bottom right. It fills the same game frame as every other screen.
 - Items, in `src/data/bag.js` (the plain portfolio reuses them):
-  - RESUME: `public/resume.pdf`, opens in a new tab
+  - RESUME: a Google Drive link (https://drive.google.com/file/d/1vuss1LDWPIp0UDzajf2gXJdhKR7cN1RY/view?usp=sharing), new tab
   - GITHUB: https://github.com/navparthiban, new tab
   - LINKEDIN: https://www.linkedin.com/in/navin-parthiban, new tab
   - EMAIL: `mailto:navparthiban@gmail.com`. The address is also written in its description ("Send Navin an email: navparthiban@gmail.com"), and clicking EMAIL copies it and says "Email address copied!", because a computer with no mail app does nothing with a `mailto:` link
 - Items are real links, so Enter and a click open them. Web links use `target="_blank"` with `rel="noopener noreferrer"`, and screen readers hear "(opens in a new tab)".
 - Arrow keys move through the items and CANCEL without wrapping. Escape or CANCEL returns to the main menu with the cursor on BAG.
-- If `public/resume.pdf` is missing, RESUME still shows, but as a muted button, and the text box says "Resume isn't available yet." instead of linking to a broken page. If the check can't run (for example offline), RESUME stays a link.
 
 ## Plain portfolio
 - RUN shows "Got away safely!" in the text box. When the message is dismissed (Enter or a click), the plain portfolio opens.
 - It is a normal scrolling web page, outside the game frame, in the game's colors. Section headings use the pixel font and the text uses Atkinson Hyperlegible, which is easier to read. It works on desktops and phones.
-- Sections: a header (name and "CS + Chemistry at UIUC"), About, Experience (from the party data: name, role, dates, type, description, with the Pokémon's name as a small tag), Skills (the moves), and Links and resume (the bag items). Anything missing is left out. If `public/resume.pdf` is missing, RESUME shows "Resume isn't available yet." instead of a broken link.
+- Sections: a header (name and "CS + Chemistry at UIUC"), About, Experience (from the party data: name, role, dates, type, description, with the Pokémon's name as a small tag), Skills (the moves), and Links and resume (the bag items). Anything missing is left out.
 - The page has one main heading, a heading for each section, visible focus, and no horizontal scrolling down to 320px wide. The body text has at least 5.5:1 contrast.
 - The "Back to the game" button at the top (the first thing in the tab order) returns to the battle exactly where it was: same HP, same Pokémon out, same menu with the cursor on RUN, and no animations replaying.
 - The page has its own address, `/#portfolio`, so it can be linked from a resume. Opening that address (or refreshing on it) shows the plain page with no intro, and its top button says "Play the game". That button starts the game from the Professor intro, followed by the battle transition. The browser's Back and Forward buttons work too.
@@ -137,7 +136,7 @@ Next:
 5. RUN as a plain, separate portfolio page (done)
 
 ## Known gaps
-- No real content yet (skills). `public/resume.pdf` has not been added, so RESUME shows the "not available yet" message until it is
+- No real content yet (skills)
 - The GitHub and LinkedIn URLs in `src/data/bag.js` should be double-checked
 - Party descriptions, roles, type labels, levels, and HP are starter text for Navin to rewrite, and no dates are filled in yet
 - The animated sprite GIFs keep playing with reduced motion on (they don't pause yet)

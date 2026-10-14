@@ -8,7 +8,6 @@ import { TRANSITION } from './logic/transition.js'
 
 beforeEach(() => {
   vi.useFakeTimers()
-  vi.stubGlobal('fetch', () => new Promise(() => {}))
   window.history.replaceState(null, '', '/')
 })
 

@@ -165,10 +165,6 @@ body.body--light {
   color: var(--ink);
 }
 
-span.portfolio__link-name {
-  color: var(--hp-track);
-}
-
 .portfolio__link-item p {
   overflow-wrap: break-word;
 }

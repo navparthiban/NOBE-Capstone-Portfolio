@@ -200,14 +200,6 @@ describe('BattleScreen menus', () => {
   })
 
   describe('bag', () => {
-    beforeEach(() => {
-      vi.stubGlobal('fetch', () => new Promise(() => {}))
-    })
-
-    afterEach(() => {
-      vi.unstubAllGlobals()
-    })
-
     function openBag() {
       render(<BattleScreen />)
       skipIntro()
@@ -543,14 +535,6 @@ describe('BattleScreen party', () => {
 })
 
 describe('BattleScreen field', () => {
-  beforeEach(() => {
-    vi.stubGlobal('fetch', () => new Promise(() => {}))
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
   function fieldSprites(container) {
     return [container.querySelector('.sprite--player'), container.querySelector('.sprite--opponent')]
   }

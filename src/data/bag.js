@@ -1,10 +1,9 @@
-export const RESUME_URL = `${import.meta.env.BASE_URL}resume.pdf`
+export const RESUME_URL = 'https://drive.google.com/file/d/1vuss1LDWPIp0UDzajf2gXJdhKR7cN1RY/view?usp=sharing'
 
 export const bagItems = [
   {
     name: 'RESUME',
-    description: "Navin's resume (PDF).",
-    missingMessage: "Resume isn't available yet.",
+    description: "Navin's resume on Google Drive.",
     url: RESUME_URL,
     external: true,
   },
