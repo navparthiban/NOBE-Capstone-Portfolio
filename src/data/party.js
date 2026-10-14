@@ -22,7 +22,7 @@ export const party = [
     experience: 'ClearSign',
     type: 'Project',
     role: 'Developer',
-    description: 'A web app where you upload a legal contract, take a quiz, read an AI summary in plain language, then quiz again to see how much you learned. I split it into a React frontend and Express backend so the API key never reaches the browser',
+    description: 'A web app where you upload a legal contract, take a quiz, read an AI summary in plain language, then quiz again to see how much you learned. I split it into a React frontend and Express backend so the API key never reaches the browser.',
   },
   {
     name: 'ELECTRODE',
@@ -46,7 +46,7 @@ export const party = [
     experience: 'Mathnasium',
     type: 'Work',
     role: 'Math Instructor',
-    description: 'Taught 5 to 7 students a week, from kindergarten to high school with each student having an individualized lesson plan',
+    description: 'Taught 5 to 7 students a week, from kindergarten to high school with each student having an individualized lesson plan.',
   },
   {
     name: 'MEOWTH',
@@ -58,7 +58,7 @@ export const party = [
     experience: 'DECA Marketing Campaign',
     type: 'Competition',
     role: 'Team Leader',
-    description: 'Led my team\'s campaign manual for a Logitech G915 (Keyboard) marketing project. We placed in the top 10 at state',
+    description: 'Led my team\'s campaign manual for a Logitech G915 (Keyboard) marketing project. We placed in the top 10 at state.',
   },
   {
     name: 'CHANSEY',
@@ -83,6 +83,6 @@ export const party = [
     type: 'Club',
     role: 'Developer',
     description:
-      'Building software for real business clients on the Tech Committee of NOBE. My first project is an after-school program lottery system for Lincoln Elementary',
+      'Building software for real business clients on the Tech Committee of NOBE. My first project is an after-school program lottery system for Lincoln Elementary.',
   },
 ]
