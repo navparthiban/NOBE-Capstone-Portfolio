@@ -13,7 +13,7 @@ Navin is a CS + Chemistry freshman at UIUC and a beginner. This is the NOBE Tech
 - Public GitHub repo, interactive feature with automated tests (normal use and edge cases)
 - GitHub Actions on every PR: lint, test, build; passing checks required to merge
 - Auto-deploy from main to the live site after checks pass
-- Evidence of a failed check, its fix, and a main deployment
+- No evidence of failed/passing checks required; the tech director will check each repo to confirm the proper tests and checks are in place
 - README with setup, test, deploy steps and a note on AI use and limitations
 - Keyboard-accessible battle menu (usability and accessibility are graded)
 - Dates: technical checkpoint Oct 15, final links Oct 16, presentation Oct 17
