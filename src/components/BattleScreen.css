@@ -643,8 +643,12 @@
 .bag__art {
   width: 50%;
   aspect-ratio: 1;
-  background: var(--sprite-bg);
-  border: 0.25em dashed var(--border);
+}
+
+.bag__icon {
+  flex: none;
+  width: 2em;
+  height: 2em;
 }
 
 .bag__list {

@@ -76,12 +76,13 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
 - The Pokéball is a small pixel-art SVG in `src/assets/sprites/pokeball.svg`.
 
 ## Bag
-- BAG opens a bag screen like the games': a bag picture box, a list of four items, and a text box along the bottom that describes the highlighted item, with CANCEL at the bottom right. It fills the same game frame as every other screen.
+- BAG opens a bag screen like the games': a pixel-art backpack in a box beside the list, a list of four items, and a text box along the bottom that describes the highlighted item, with CANCEL at the bottom right. It fills the same game frame as every other screen.
 - Items, in `src/data/bag.js` (the plain portfolio reuses them):
   - RESUME: a Google Drive link (https://drive.google.com/file/d/1vuss1LDWPIp0UDzajf2gXJdhKR7cN1RY/view?usp=sharing), new tab
   - GITHUB: https://github.com/navparthiban, new tab
   - LINKEDIN: https://www.linkedin.com/in/navin-parthiban, new tab
   - EMAIL: `mailto:navparthiban@gmail.com`. The address is also written in its description ("Send Navin an email: navparthiban@gmail.com"), and clicking EMAIL copies it and says "Email address copied!", because a computer with no mail app does nothing with a `mailto:` link
+- Each item has a small pixel-art icon next to its name: a scroll for RESUME, a code bracket (`</>`) for GITHUB, a briefcase for LINKEDIN, and an envelope for EMAIL. The backpack and icons are made of square pixels in the game's palette, with flat colors and no gradients. They are decorative, so screen readers skip them and each link is still announced by its name. On a phone held upright, the backpack sits in a row above the list.
 - Items are real links, so Enter and a click open them. Web links use `target="_blank"` with `rel="noopener noreferrer"`, and screen readers hear "(opens in a new tab)".
 - Arrow keys move through the items and CANCEL without wrapping. Escape or CANCEL returns to the main menu with the cursor on BAG.
 
