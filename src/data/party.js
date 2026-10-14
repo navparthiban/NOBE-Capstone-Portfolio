@@ -22,7 +22,7 @@ export const party = [
     experience: 'ClearSign',
     type: 'Project',
     role: 'Developer',
-    description: 'A web app that turns long, confusing legal contracts into plain language.',
+    description: 'A web app where you upload a legal contract, take a quiz, read an AI summary in plain language, then quiz again to see how much you learned. I split it into a React frontend and Express backend so the API key never reaches the browser',
   },
   {
     name: 'ELECTRODE',
@@ -34,7 +34,7 @@ export const party = [
     experience: 'SCARF Research',
     type: 'Research',
     role: 'Researcher',
-    description: 'Research on inherited arrhythmias, heart rhythm conditions that run in families.',
+    description: 'Reviewed 38 peer-reviewed studies on inherited arrhythmias like Long QT and Brugada syndrome. I proposed a risk assessment tool based on family history and genetics, and presented it at a research symposium with my team.',
   },
   {
     name: 'ALAKAZAM',
@@ -46,7 +46,7 @@ export const party = [
     experience: 'Mathnasium',
     type: 'Work',
     role: 'Math Instructor',
-    description: 'Teaching math to students as an instructor at Mathnasium.',
+    description: 'Taught 5 to 7 students a week, from kindergarten to high school with each student having an individualized lesson plan',
   },
   {
     name: 'MEOWTH',
@@ -57,8 +57,8 @@ export const party = [
     backSprite: backMeowth,
     experience: 'DECA Marketing Campaign',
     type: 'Competition',
-    role: 'Campaign Member',
-    description: 'A marketing campaign for DECA that placed in the top 10 at state.',
+    role: 'Team Leader',
+    description: 'Led my team\'s campaign manual for a Logitech G915 (Keyboard) marketing project. We placed in the top 10 at state ',
   },
   {
     name: 'CHANSEY',
@@ -69,8 +69,8 @@ export const party = [
     backSprite: backChansey,
     experience: 'Edward Hospital',
     type: 'Volunteer',
-    role: 'Volunteer',
-    description: 'Volunteering at Edward Hospital.',
+    role: 'Surgical Waiting Area Volunteer',
+    description: 'Spent two years in the surgical waiting area, keeping families updated and supporting the nursing staff.',
   },
   {
     name: 'MAGNETON',
@@ -81,8 +81,8 @@ export const party = [
     backSprite: backMagneton,
     experience: 'NOBE Tech Committee',
     type: 'Club',
-    role: 'Software Team Member',
+    role: 'Developer',
     description:
-      'Building software for real clients with the NOBE Tech Committee, starting with the Lincoln Elementary project.',
+      'Building software for real business clients on the Tech Committee of NOBE. My first project is an after-school program lottery system for Lincoln Elementary',
   },
 ]
