@@ -145,6 +145,33 @@ describe('PortfolioPage with missing data', () => {
   })
 })
 
+describe('PortfolioPage project links', () => {
+  it('shows a Visit link named after the experience that opens in a new tab safely', async () => {
+    await renderPage({
+      experiences: [{ name: 'A', experience: 'Linked Project', description: 'Did things.', link: 'https://example.com/' }],
+    })
+    const link = within(card('Linked Project')).getByRole('link', { name: /^Visit Linked Project/ })
+    expect(link).toHaveTextContent('Visit Linked Project (opens in a new tab)')
+    expect(link).toHaveAttribute('href', 'https://example.com/')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('shows no link on a card without one, and leaves its paragraphs unchanged', async () => {
+    await renderPage({ experiences: [{ name: 'B', experience: 'Plain Project', description: 'Did things.' }] })
+    expect(within(card('Plain Project')).queryByRole('link')).not.toBeInTheDocument()
+    expect(card('Plain Project').querySelectorAll('p')).toHaveLength(2)
+  })
+
+  it('shows a link on every real party entry that has one', async () => {
+    await renderPage()
+    for (const pokemon of party.filter((p) => p.link)) {
+      const link = within(card(pokemon.experience)).getByRole('link', { name: new RegExp(`Visit ${pokemon.experience}`) })
+      expect(link).toHaveAttribute('href', pokemon.link)
+    }
+  })
+})
+
 describe('PortfolioPage resume', () => {
   it('links the resume to the Drive file and opens it in a new tab safely, with no network check', async () => {
     const fetchMock = vi.fn()
@@ -154,7 +181,7 @@ describe('PortfolioPage resume', () => {
     expect(link).toHaveAttribute('href', RESUME_URL)
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', 'noopener noreferrer')
-    expect(screen.getAllByRole('link')).toHaveLength(bagItems.length)
+    expect(screen.getAllByRole('link')).toHaveLength(bagItems.length + party.filter((p) => p.link).length)
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })

@@ -117,7 +117,7 @@ A portfolio site for Navin (NOBE Tech Committee capstone) where a visitor plays 
   - PORYGON: ClearSign, legal contract simplifier web app
   - ELECTRODE: SCARF research on inherited arrhythmias
   - ALAKAZAM: Mathnasium math instructor
-  - MEOWTH: DECA marketing campaign, top 10 at state
+  - MEOWTH: Study Battle, CS 124 study game web app
   - CHANSEY: Edward Hospital volunteer
   - MAGNETON: NOBE Tech Committee, Lincoln Elementary project
 
