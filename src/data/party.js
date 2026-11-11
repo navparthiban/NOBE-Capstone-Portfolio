@@ -22,7 +22,8 @@ export const party = [
     experience: 'ClearSign',
     type: 'Project',
     role: 'Developer',
-    description: 'A web app where you upload a legal contract, take a quiz, read an AI summary in plain language, then quiz again to see how much you learned. I split it into a React frontend and Express backend so the API key never reaches the browser.',
+    description: 'A web app where you upload a legal contract, take a quiz, read an AI summary in plain language, then quiz again to see how much you learned. I split it into a React frontend and Express backend so the API keys never reach the browser, and the backend falls back from Gemini to OpenRouter models if one fails.',
+    link: 'https://clearsignlegalsimplifier.netlify.app/',
   },
   {
     name: 'ELECTRODE',
@@ -33,7 +34,7 @@ export const party = [
     backSprite: backElectrode,
     experience: 'SCARF Research',
     type: 'Research',
-    role: 'Researcher',
+    role: 'Research Team Member',
     description: 'Reviewed 38 peer-reviewed studies on inherited arrhythmias like Long QT and Brugada syndrome. I proposed a risk assessment tool based on family history and genetics, and presented it at a research symposium with my team.',
   },
   {
@@ -55,10 +56,11 @@ export const party = [
     maxHp: 50,
     sprite: frontMeowth,
     backSprite: backMeowth,
-    experience: 'DECA Marketing Campaign',
-    type: 'Competition',
-    role: 'Team Leader',
-    description: 'Led my team\'s campaign manual for a Logitech G915 (Keyboard) marketing project. We placed in the top 10 at state.',
+    experience: 'Study Battle',
+    type: 'Project',
+    role: 'Developer',
+    description: 'A web game for my CS 124 class that turns uploaded study notes into multiple-choice questions written by an LLM, which you answer to fight a boss in turn-based battles. Built with Next.js, TypeScript, Tailwind CSS, and Supabase. Still in development.',
+    link: 'https://study-battle-navin.vercel.app/',
   },
   {
     name: 'CHANSEY',
@@ -83,6 +85,6 @@ export const party = [
     type: 'Club',
     role: 'Developer',
     description:
-      'Building software for real business clients on the Tech Committee of NOBE. My first project is an after-school program lottery system for Lincoln Elementary.',
+      'Built an after-school activity lottery system for Lincoln Elementary with a student team, replacing a manual Google Form and spreadsheet process. I worked mainly on the backend, including roster generation, data validation, and Excel export.',
   },
 ]

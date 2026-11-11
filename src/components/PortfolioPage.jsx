@@ -15,6 +15,14 @@ function Experience({ pokemon }) {
       {pokemon.type && <span className="portfolio__type">{pokemon.type}</span>}
       {meta && <p className="portfolio__meta">{meta}</p>}
       {pokemon.description && <p>{pokemon.description}</p>}
+      {pokemon.link && (
+        <p>
+          <a {...getLinkProps({ url: pokemon.link, external: true })}>
+            Visit {pokemon.experience}
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+        </p>
+      )}
       <p className="portfolio__tag" aria-hidden="true">
         {pokemon.name} in the game
       </p>
