@@ -29,7 +29,8 @@ const pressEscape = () => fireEvent.keyDown(window, { key: 'Escape' })
 function renderAt(line) {
   const onDone = vi.fn()
   const view = render(<IntroScreen onDone={onDone} />)
-  for (let step = 0; step < line; step++) nextLine()
+  const next = view.container.querySelector('.text-box__button')
+  for (let step = 0; step < line * 2; step++) fireEvent.click(next)
   return { onDone, ...view }
 }
 
