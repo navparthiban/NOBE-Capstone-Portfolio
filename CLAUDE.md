@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## About
-Navin is a CS + Chemistry freshman at UIUC and a beginner. This is the NOBE Tech Committee capstone: a personal portfolio styled as a Pokémon trainer battle in pixel art. The visitor plays Navin against a Recruiter.
+Navin is a CS + Chemistry freshman at UIUC and a beginner. This is a personal project: a portfolio styled as a Pokémon trainer battle in pixel art. It started as the NOBE Tech Committee capstone and is no longer graded. The visitor plays Navin against a Recruiter. Recruiters are linked to the plain version of the site first.
 
 - FIGHT: skills shown as moves
 - PARTY: six Pokémon, each a project or experience
@@ -9,14 +9,12 @@ Navin is a CS + Chemistry freshman at UIUC and a beginner. This is the NOBE Tech
 - RUN: opens a plain version of the site
 - Winning shows a badge screen with contact info
 
-## Requirements
+## Standards
 - Public GitHub repo, interactive feature with automated tests (normal use and edge cases)
 - GitHub Actions on every PR: lint, test, build; passing checks required to merge
 - Auto-deploy from main to the live site after checks pass
-- No evidence of failed/passing checks required; the tech director will check each repo to confirm the proper tests and checks are in place
 - README with setup, test, deploy steps and a note on AI use and limitations
-- Keyboard-accessible battle menu (usability and accessibility are graded)
-- Dates: technical checkpoint Oct 15, final links Oct 16, presentation Oct 17
+- Keyboard-accessible battle menu
 
 ## Preferences
 - Plan every feature before coding and wait for approval
